@@ -1,0 +1,1514 @@
+{
+  "project": "TBS ERP on Inforact App Builder",
+  "company": "TBS Group — Logistics & Cross-border Trade (China → Vietnam)",
+  "tech_stack": "Next.js 14 + React 18 + Tailwind CSS + shadcn/ui + Inforact SDK",
+  "total_tables": 28,
+  "total_pages": 57,
+  "extracted_date": "2026-04-09",
+  "modules": [
+    {
+      "id": "MOD-01",
+      "name": "Tổng quan (Dashboard)",
+      "name_en": "Dashboard",
+      "description": "Trang chủ hiển thị KPI, biểu đồ doanh thu, phân bố đơn hàng và đơn hàng gần đây. Hỗ trợ lọc theo khoảng thời gian.",
+      "features": [
+        {
+          "id": "F-01-01",
+          "name": "KPI Cards",
+          "type": "ui_component",
+          "data_operations": ["read", "aggregate"],
+          "ui_requirements": ["dashboard", "chart"],
+          "business_rules": ["Hiển thị 4 KPI: Tổng đơn, Doanh thu, Công nợ phải thu, Tỷ lệ hoàn thành"],
+          "integrations": [],
+          "priority": "critical"
+        },
+        {
+          "id": "F-01-02",
+          "name": "Biểu đồ doanh thu",
+          "type": "report",
+          "data_operations": ["read", "aggregate", "filter"],
+          "ui_requirements": ["chart"],
+          "business_rules": ["Biểu đồ cột so sánh doanh thu vs mục tiêu theo tháng", "Lọc theo: Hôm nay, Tuần, Tháng, Quý, Năm"],
+          "integrations": [],
+          "priority": "high"
+        },
+        {
+          "id": "F-01-03",
+          "name": "Phân bố đơn hàng theo trạng thái",
+          "type": "report",
+          "data_operations": ["read", "aggregate"],
+          "ui_requirements": ["chart"],
+          "business_rules": ["Biểu đồ tròn/donut hiển thị số đơn theo từng trạng thái"],
+          "integrations": [],
+          "priority": "high"
+        },
+        {
+          "id": "F-01-04",
+          "name": "Đơn hàng gần đây",
+          "type": "ui_component",
+          "data_operations": ["read", "sort"],
+          "ui_requirements": ["data_table"],
+          "business_rules": ["Hiển thị 5 đơn hàng mới nhất với link xem chi tiết"],
+          "integrations": [],
+          "priority": "high"
+        },
+        {
+          "id": "F-01-05",
+          "name": "Dashboard theo vai trò",
+          "type": "report",
+          "data_operations": ["read", "aggregate", "filter"],
+          "ui_requirements": ["dashboard", "chart"],
+          "business_rules": [
+            "Sale: Revenue progress, pipeline đơn, AR alerts, tasks hôm nay, leaderboard",
+            "Leader: Hiệu suất nhóm, phê duyệt chờ, vi phạm SLA",
+            "GĐ KD: Revenue theo chi nhánh, forecast pipeline, top KH, AR > 15 ngày",
+            "KT TT: Hàng đợi phiếu chi, AR aging, tổng hợp dòng tiền",
+            "Trưởng kho: Giao hàng hôm nay, tồn kho, COD chờ nộp",
+            "BGĐ: KPI điều hành, xu hướng doanh thu/lợi nhuận, cảnh báo nghiêm trọng"
+          ],
+          "integrations": [],
+          "priority": "high"
+        }
+      ]
+    },
+    {
+      "id": "MOD-02",
+      "name": "Quản lý Lead & CRM",
+      "name_en": "CRM & Lead Management",
+      "description": "Quản lý lead từ các nguồn marketing, pipeline bán hàng, chuyển đổi lead thành khách hàng, customer 360 view với ví điện tử và QR.",
+      "features": [
+        {
+          "id": "F-02-01",
+          "name": "Danh sách Lead",
+          "type": "crud",
+          "data_operations": ["create", "read", "update", "filter", "search", "sort"],
+          "ui_requirements": ["data_table", "form", "modal"],
+          "business_rules": [
+            "Lead code tự sinh: format tùy chỉnh",
+            "Nguồn: Facebook/TikTok/Website/Zalo/Giới thiệu/Khác",
+            "Đánh giá: Nóng/Ấm/Lạnh/Xấu",
+            "Trạng thái: Mới → Đang khai thác → Đã giao Sale → Đang tư vấn → Đã báo giá → Thành KH / Thất bại"
+          ],
+          "integrations": [],
+          "priority": "critical"
+        },
+        {
+          "id": "F-02-02",
+          "name": "Pipeline Lead (Kanban)",
+          "type": "ui_component",
+          "data_operations": ["read", "update", "filter"],
+          "ui_requirements": ["kanban"],
+          "business_rules": [
+            "5 cột kanban: Mới, Đang khai thác, Đã giao Sale, Đang tư vấn, Đã báo giá",
+            "Kéo thả lead giữa các cột để cập nhật trạng thái",
+            "Card hiển thị: Tên, SĐT, Nguồn, Rating dot, Sale owner"
+          ],
+          "integrations": [],
+          "priority": "high"
+        },
+        {
+          "id": "F-02-03",
+          "name": "Nhật ký hoạt động Lead",
+          "type": "crud",
+          "data_operations": ["create", "read"],
+          "ui_requirements": ["form", "data_table"],
+          "business_rules": [
+            "Loại: Gọi điện/Zalo/Email/Gặp mặt/Ghi chú",
+            "Ghi lại nội dung tương tác và kết quả",
+            "Hiển thị dòng thời gian hoạt động"
+          ],
+          "integrations": [],
+          "priority": "high"
+        },
+        {
+          "id": "F-02-04",
+          "name": "Chuyển đổi Lead → Khách hàng",
+          "type": "workflow",
+          "data_operations": ["create", "read", "update"],
+          "ui_requirements": ["modal", "form"],
+          "business_rules": [
+            "Yêu cầu: Phải có báo giá đã chốt (IsFinal) trước khi chuyển đổi",
+            "Kiểm tra trùng SĐT/Email trong bảng Customers",
+            "Tự tạo: customer_code (KH-prefix), QR, ví VND (balance=0), ví CNY (balance=0)",
+            "Cập nhật lead status → Thành KH, gán ConvertedCustomerId",
+            "Liên kết báo giá với customer mới"
+          ],
+          "integrations": [],
+          "priority": "critical"
+        },
+        {
+          "id": "F-02-05",
+          "name": "Phân công Lead",
+          "type": "workflow",
+          "data_operations": ["update"],
+          "ui_requirements": ["modal"],
+          "business_rules": [
+            "CSKH tiếp nhận data → giao cho Sale trong 15 phút (SLA)",
+            "Sale liên hệ lead trong 2 giờ (SLA)",
+            "Leader giám sát nhóm 3-5 Sales",
+            "Nếu vi phạm SLA → leo thang lên GĐ KD"
+          ],
+          "integrations": [],
+          "priority": "high"
+        },
+        {
+          "id": "F-02-06",
+          "name": "Danh sách Khách hàng",
+          "type": "crud",
+          "data_operations": ["create", "read", "update", "filter", "search", "sort"],
+          "ui_requirements": ["data_table", "form", "modal"],
+          "business_rules": [
+            "Tier: Prospect/Active/VIP/Inactive/Blacklist",
+            "Tỷ lệ cọc theo tier: VIP 30%, Active 30%, mới 50%",
+            "Hạn mức tín dụng (CreditLimit)",
+            "Hai ví: VND + CNY",
+            "Chi nhánh: HN/HCM"
+          ],
+          "integrations": [],
+          "priority": "critical"
+        },
+        {
+          "id": "F-02-07",
+          "name": "Customer 360 View",
+          "type": "report",
+          "data_operations": ["read", "aggregate"],
+          "ui_requirements": ["data_table", "chart", "dashboard"],
+          "business_rules": [
+            "Tab: Tổng quan, Đơn hàng, Tài chính, Báo giá & Hợp đồng, Vấn đề chất lượng, Nhật ký hoạt động",
+            "Tổng hợp: Tổng đơn, Tổng doanh thu, Số dư ví, Công nợ quá hạn",
+            "Cross-table join: Orders + AR + WalletTransactions + Quotations"
+          ],
+          "integrations": [],
+          "priority": "high"
+        },
+        {
+          "id": "F-02-08",
+          "name": "Auto-upgrade Tier khách hàng",
+          "type": "workflow",
+          "data_operations": ["read", "update", "aggregate"],
+          "ui_requirements": [],
+          "business_rules": [
+            "Doanh thu năm ≥ 500M VND → VIP",
+            "Có đơn hoàn thành → Active",
+            "Không có đơn trong 6 tháng → Inactive",
+            "Tự động kiểm tra và cập nhật tier"
+          ],
+          "integrations": [],
+          "priority": "medium"
+        },
+        {
+          "id": "F-02-09",
+          "name": "Credit Hold Check",
+          "type": "workflow",
+          "data_operations": ["read"],
+          "ui_requirements": [],
+          "business_rules": [
+            "Trước khi tạo đơn mới → kiểm tra AR quá hạn > 30 ngày",
+            "Nếu có → chặn tạo đơn, thông báo 'Cần thanh toán trước'"
+          ],
+          "integrations": [],
+          "priority": "high"
+        }
+      ]
+    },
+    {
+      "id": "MOD-03",
+      "name": "Quản lý Đơn hàng",
+      "name_en": "Order Management",
+      "description": "Đơn hàng là thực thể trung tâm (HUB) của hệ thống. Quản lý vòng đời 13 giai đoạn, 4 loại dịch vụ, hàng hóa, lịch sử và các hành động nhanh.",
+      "features": [
+        {
+          "id": "F-03-01",
+          "name": "Danh sách Đơn hàng",
+          "type": "crud",
+          "data_operations": ["read", "filter", "search", "sort"],
+          "ui_requirements": ["data_table", "inline_edit"],
+          "business_rules": [
+            "Tab trạng thái: Tất cả/Nháp/Đang xử lý/Hoàn thành/Đã hủy",
+            "Expandable rows hiển thị đơn con",
+            "Lọc theo: Chi nhánh, NV Sale, Khoảng ngày",
+            "Tìm kiếm theo: Mã đơn, Tên KH",
+            "Hành động nhanh mỗi dòng: Xem, Gắn tag, In"
+          ],
+          "integrations": [],
+          "priority": "critical"
+        },
+        {
+          "id": "F-03-02",
+          "name": "Tạo Đơn hàng",
+          "type": "crud",
+          "data_operations": ["create", "read"],
+          "ui_requirements": ["form"],
+          "business_rules": [
+            "Mã đơn tự sinh: DH-[YYMMDD]-[SEQ]",
+            "Chọn loại dịch vụ (multi-select): VCT/MHH/UTXNK/LCLCN",
+            "Auto-fill từ customer: địa chỉ giao, người nhận, SĐT",
+            "Tính cọc theo tier: VIP/Active 30%, mới 50%",
+            "Tỷ giá khóa tại thời điểm tạo đơn",
+            "Kiểm tra Credit Hold trước khi tạo",
+            "Ưu tiên: Thường/Gấp/VIP"
+          ],
+          "integrations": [],
+          "priority": "critical"
+        },
+        {
+          "id": "F-03-03",
+          "name": "Chi tiết Đơn hàng (5 tabs)",
+          "type": "ui_component",
+          "data_operations": ["read", "aggregate"],
+          "ui_requirements": ["data_table", "chart"],
+          "business_rules": [
+            "Tab Tổng quan: KH card + Tài chính tóm tắt + Timeline trực quan (13 giai đoạn)",
+            "Tab Hàng hóa: Bảng OrderItems với trạng thái từng sản phẩm",
+            "Tab Tài chính: Phiếu thu/chi + AR + Giao dịch ví",
+            "Tab Logistics: Phiếu nhập kho TQ → Container → Phiếu nhập kho VN → Giao hàng",
+            "Tab Lịch sử: Audit trail theo thời gian (OrderHistory)"
+          ],
+          "integrations": [],
+          "priority": "critical"
+        },
+        {
+          "id": "F-03-04",
+          "name": "Vòng đời 13 giai đoạn",
+          "type": "workflow",
+          "data_operations": ["update"],
+          "ui_requirements": [],
+          "business_rules": [
+            "① Tiếp nhận → ② Báo giá → ③ Cọc → ④ Mua hàng* → ⑤ Nhập kho TQ → ⑥ Đóng gói → ⑦ Ghép container* → ⑧ Vận chuyển → ⑨ Thông quan* → ⑩ Nhập kho VN → ⑪ Giao hàng → ⑫ Quyết toán → ⑬ Hoàn thành",
+            "VCT: Bỏ qua giai đoạn 4, 7, 9",
+            "MHH: Thêm giai đoạn 4 (tìm hàng + đặt NCC)",
+            "UTXNK: Cần giai đoạn 7 (container) + 9 (thông quan) + nhãn HQ",
+            "LCLCN: Cần full bộ chứng từ + khai báo HQ",
+            "Trạng thái đặc biệt: Tạm giữ, Đã hủy (từ bất kỳ trạng thái nào)"
+          ],
+          "integrations": [],
+          "priority": "critical"
+        },
+        {
+          "id": "F-03-05",
+          "name": "Quick Actions theo trạng thái",
+          "type": "ui_component",
+          "data_operations": ["update", "create"],
+          "ui_requirements": ["modal"],
+          "business_rules": [
+            "Đã xác nhận + MHH/UTXNK → 'Đặt hàng NCC'",
+            "Đã xác nhận → 'Tạo phiếu thu cọc'",
+            "Tại kho TQ + UTXNK/LCLCN → 'Ghép container'",
+            "Tại kho VN → 'Tạo lệnh giao hàng'",
+            "Đã giao → 'Gửi đối soát' + 'Tạo hóa đơn'"
+          ],
+          "integrations": [],
+          "priority": "high"
+        },
+        {
+          "id": "F-03-06",
+          "name": "Timeline trực quan đơn hàng",
+          "type": "ui_component",
+          "data_operations": ["read"],
+          "ui_requirements": [],
+          "business_rules": [
+            "Hiển thị các giai đoạn yêu cầu dựa trên ServiceTypes",
+            "Giai đoạn đã qua: xanh lá + check",
+            "Giai đoạn hiện tại: xanh dương + ring",
+            "Giai đoạn tương lai: xám"
+          ],
+          "integrations": [],
+          "priority": "high"
+        },
+        {
+          "id": "F-03-07",
+          "name": "Quản lý hàng hóa (OrderItems)",
+          "type": "crud",
+          "data_operations": ["create", "read", "update", "delete"],
+          "ui_requirements": ["data_table", "form"],
+          "business_rules": [
+            "Mỗi sản phẩm: Tên, Link, SKU, Thuộc tính, SL, Giá CNY",
+            "Trạng thái từng item: Chờ mua → Đã đặt → Đang SX → Đã về kho TQ → Đã giao",
+            "Tracking SL: QuantityReceivedCN, QuantityReceivedVN, QuantityDelivered",
+            "Mã HS (HSCode) cho hàng chính ngạch",
+            "Liên kết NCC (SupplierId)"
+          ],
+          "integrations": [],
+          "priority": "critical"
+        },
+        {
+          "id": "F-03-08",
+          "name": "Lịch sử đơn hàng (Audit Trail)",
+          "type": "crud",
+          "data_operations": ["create", "read"],
+          "ui_requirements": ["data_table"],
+          "business_rules": [
+            "Ghi lại: FromStatus → ToStatus, Action, Note, PerformedBy",
+            "Chỉ tạo mới, không sửa/xóa (immutable log)",
+            "Hiển thị theo dòng thời gian"
+          ],
+          "integrations": [],
+          "priority": "high"
+        }
+      ]
+    },
+    {
+      "id": "MOD-04",
+      "name": "Báo giá",
+      "name_en": "Quotations",
+      "description": "Tạo và quản lý báo giá với versioning, line items, tính toán tỷ giá và chiết khấu. Chốt báo giá để chuyển đổi thành đơn hàng.",
+      "features": [
+        {
+          "id": "F-04-01",
+          "name": "Danh sách Báo giá",
+          "type": "crud",
+          "data_operations": ["create", "read", "update", "filter", "search", "sort"],
+          "ui_requirements": ["data_table", "form"],
+          "business_rules": [
+            "Mã báo giá: BG-[YYMMDD]-[SEQ]",
+            "Trạng thái: Nháp → Đã gửi → Đã chốt / Từ chối / Hết hạn",
+            "Liên kết với Lead hoặc Customer",
+            "Loại dịch vụ: VCT/MHH/UTXNK/LCLCN (multi-select)",
+            "Ngày hết hạn (ValidUntil)"
+          ],
+          "integrations": [],
+          "priority": "critical"
+        },
+        {
+          "id": "F-04-02",
+          "name": "Line Items báo giá",
+          "type": "crud",
+          "data_operations": ["create", "read", "update", "delete"],
+          "ui_requirements": ["data_table", "form", "inline_edit"],
+          "business_rules": [
+            "Sản phẩm: Tên, Link, SKU, Thuộc tính, SL, Đơn giá CNY",
+            "Tự tính TotalCNY = Quantity × UnitPriceCNY",
+            "Mã HS cho hàng chính ngạch"
+          ],
+          "integrations": [],
+          "priority": "critical"
+        },
+        {
+          "id": "F-04-03",
+          "name": "Tính toán chi phí báo giá",
+          "type": "workflow",
+          "data_operations": ["read", "aggregate"],
+          "ui_requirements": [],
+          "business_rules": [
+            "ItemsTotalCNY + ServiceFee + ShippingFee + EstimatedTax = TotalVND",
+            "Áp dụng tỷ giá CNY→VND hiện tại",
+            "Chiết khấu: % hoặc số tiền",
+            "Chiết khấu > 3% → yêu cầu phê duyệt"
+          ],
+          "integrations": [],
+          "priority": "high"
+        },
+        {
+          "id": "F-04-04",
+          "name": "Chốt báo giá → Tạo đơn hàng",
+          "type": "workflow",
+          "data_operations": ["update", "create"],
+          "ui_requirements": ["modal"],
+          "business_rules": [
+            "Đánh dấu IsFinal = true",
+            "Tạo đơn hàng từ báo giá đã chốt",
+            "Copy thông tin: KH, loại DV, items, giá, tỷ giá"
+          ],
+          "integrations": [],
+          "priority": "critical"
+        }
+      ]
+    },
+    {
+      "id": "MOD-05",
+      "name": "Hợp đồng",
+      "name_en": "Contracts",
+      "description": "Quản lý hợp đồng với khách hàng và nhà cung cấp, theo dõi trạng thái ký kết và thực hiện.",
+      "features": [
+        {
+          "id": "F-05-01",
+          "name": "Quản lý Hợp đồng",
+          "type": "crud",
+          "data_operations": ["create", "read", "update", "filter", "search"],
+          "ui_requirements": ["data_table", "form"],
+          "business_rules": [
+            "Mã hợp đồng: HD-[YYMMDD]-[SEQ]",
+            "Trạng thái: Nháp → Chờ ký → Đã ký → Đang thực hiện → Hoàn thành / Đã hủy",
+            "Liên kết: CustomerId, OrderId, QuotationId",
+            "Giá trị hợp đồng + Tiền tệ (VND/CNY/USD)",
+            "Ngày ký + Ngày bắt đầu + Ngày kết thúc"
+          ],
+          "integrations": [],
+          "priority": "high"
+        }
+      ]
+    },
+    {
+      "id": "MOD-06",
+      "name": "Kho Trung Quốc",
+      "name_en": "Warehouse China",
+      "description": "Nhận hàng tại kho TQ, quét mã vận đơn, kiểm tra QC, dán nhãn, tính CBM. Giao diện song ngữ Việt-Trung cho Agent TQ.",
+      "features": [
+        {
+          "id": "F-06-01",
+          "name": "Phiếu nhập kho TQ",
+          "type": "crud",
+          "data_operations": ["create", "read", "update", "filter", "search"],
+          "ui_requirements": ["form", "data_table", "file_upload"],
+          "business_rules": [
+            "22 trường dữ liệu bao gồm kích thước, cân nặng, CBM",
+            "Trạng thái 8 bước: Chờ nhận → Đã nhận → Đã kiểm → Trên kệ → Đang pick → Đã đóng gói → Đã load → Đã xuất",
+            "QC: Đạt/Lỗi/Chờ KH duyệt",
+            "Nhãn: Tem HQ OK/Cần in bù/Chỉ mã nội bộ",
+            "Dịch vụ phụ: Kiểm đếm/Đóng gói lại/Kiện gỗ/Ảnh chi tiết/Video mở kiện",
+            "Hàng không xác định (IsUnidentified) đánh dấu riêng"
+          ],
+          "integrations": [],
+          "priority": "critical"
+        },
+        {
+          "id": "F-06-02",
+          "name": "Quét mã nhập kho (Mobile-first)",
+          "type": "ui_component",
+          "data_operations": ["read", "create"],
+          "ui_requirements": ["form", "file_upload"],
+          "business_rules": [
+            "Step 1: Quét tracking number",
+            "Step 2: Auto-match đơn hàng (hoặc đánh dấu không xác định)",
+            "Step 3: Nhập cân nặng + kích thước → auto tính CBM",
+            "Step 4: Chụp ảnh (tối thiểu 2)",
+            "Step 5: Kiểm tra QC",
+            "Step 6: Kiểm tra nhãn",
+            "Step 7: Lưu",
+            "CBM = L × W × H / 1,000,000",
+            "Volumetric weight = CBM × 167",
+            "Chargeable weight = max(actual, volumetric)"
+          ],
+          "integrations": [],
+          "priority": "critical"
+        },
+        {
+          "id": "F-06-03",
+          "name": "Giao diện song ngữ Việt-Trung",
+          "type": "ui_component",
+          "data_operations": [],
+          "ui_requirements": [],
+          "business_rules": [
+            "Toggle chuyển ngôn ngữ vi/zh",
+            "Agent TQ dùng điện thoại/tablet trong kho",
+            "Nút lớn, flow quét trước (scan-first)"
+          ],
+          "integrations": [],
+          "priority": "high"
+        },
+        {
+          "id": "F-06-04",
+          "name": "Hiển thị tiến độ nhận hàng",
+          "type": "ui_component",
+          "data_operations": ["read", "aggregate"],
+          "ui_requirements": [],
+          "business_rules": [
+            "Progress bar: totalReceived / packagesExpected",
+            "Badge xanh khi đủ kiện"
+          ],
+          "integrations": [],
+          "priority": "medium"
+        }
+      ]
+    },
+    {
+      "id": "MOD-07",
+      "name": "Container & Vận chuyển",
+      "name_en": "Container & Shipping",
+      "description": "Lập kế hoạch container, ghép kiện, theo dõi vận chuyển từ TQ sang VN. Quản lý fill rate, ETD/ETA.",
+      "features": [
+        {
+          "id": "F-07-01",
+          "name": "Danh sách Container",
+          "type": "crud",
+          "data_operations": ["create", "read", "update", "filter", "search"],
+          "ui_requirements": ["data_table"],
+          "business_rules": [
+            "Mã container: CNT-[YYMMDD]-[SEQ]",
+            "Loại: 20ft/40ft/40ft HC/Xe tải",
+            "Tuyến: Đường biển/Đường bộ",
+            "Trạng thái 11 bước: Lập kế hoạch → Đặt chỗ → Đang xếp → Đã đóng → Đang vận chuyển → Tại biên giới → Hải quan → Đã thông quan → Đã về kho → Đang dỡ → Hoàn tất",
+            "Kho đích: Đông Anh (HN) / Hóc Môn (HCM)"
+          ],
+          "integrations": [],
+          "priority": "critical"
+        },
+        {
+          "id": "F-07-02",
+          "name": "Fill Rate & Ghép kiện",
+          "type": "workflow",
+          "data_operations": ["create", "read", "update", "aggregate"],
+          "ui_requirements": ["data_table", "chart"],
+          "business_rules": [
+            "FillRate = TotalCBM / MaxCBM × 100%",
+            "Màu: ≥85% xanh, ≥70% vàng, <70% đỏ",
+            "Chỉ ghép kiện từ đơn UTXNK/LCLCN, tại kho TQ, QC đạt, không phải hàng không xác định",
+            "Scan verify khi load kiện vào container"
+          ],
+          "integrations": [],
+          "priority": "critical"
+        },
+        {
+          "id": "F-07-03",
+          "name": "Quick Actions Container",
+          "type": "ui_component",
+          "data_operations": ["update"],
+          "ui_requirements": [],
+          "business_rules": [
+            "Kế hoạch → button 'Đang xếp'",
+            "Đang xếp → button 'Vận chuyển'",
+            "Button 'Thêm kiện' luôn hiển thị khi chưa đóng"
+          ],
+          "integrations": [],
+          "priority": "high"
+        },
+        {
+          "id": "F-07-04",
+          "name": "Chi tiết Container",
+          "type": "ui_component",
+          "data_operations": ["read"],
+          "ui_requirements": ["data_table"],
+          "business_rules": [
+            "Thông tin: Loại, tuyến, hãng tàu, kho đích, fill rate",
+            "Bảng items trong container: OrderCode, Packages, Weight, CBM, LoadedAt, ScanVerified"
+          ],
+          "integrations": [],
+          "priority": "high"
+        }
+      ]
+    },
+    {
+      "id": "MOD-08",
+      "name": "Thông quan",
+      "name_en": "Customs Declaration",
+      "description": "Quản lý khai báo hải quan cho đơn hàng chính ngạch (UTXNK/LCLCN).",
+      "features": [
+        {
+          "id": "F-08-01",
+          "name": "Danh sách Thông quan",
+          "type": "crud",
+          "data_operations": ["read", "update", "filter"],
+          "ui_requirements": ["data_table"],
+          "business_rules": [
+            "Chỉ hiển thị đơn UTXNK hoặc LCLCN",
+            "Tab: Chờ thông quan / Đang thông quan / Đã thông quan",
+            "Quick actions: 'Bắt đầu thông quan' (từ Tại cửa khẩu), 'Hoàn thành TQ' (từ Đang thông quan)",
+            "Liên kết container code"
+          ],
+          "integrations": [],
+          "priority": "high"
+        }
+      ]
+    },
+    {
+      "id": "MOD-09",
+      "name": "Kho Việt Nam",
+      "name_en": "Warehouse Vietnam",
+      "description": "Nhận hàng tại kho VN từ container, kiểm đếm, phân kệ và chuẩn bị giao hàng.",
+      "features": [
+        {
+          "id": "F-09-01",
+          "name": "Phiếu nhập kho VN",
+          "type": "crud",
+          "data_operations": ["create", "read", "update", "filter", "search"],
+          "ui_requirements": ["form", "data_table"],
+          "business_rules": [
+            "Kho: Đông Anh (HN) / Hóc Môn (HCM)",
+            "Trạng thái 8 bước: Chờ dỡ → Đã dỡ → Đã kiểm → Trên kệ → Đang pick → Đã đóng gói → Chờ giao → Đã giao",
+            "Đối chiếu: PackagesExpected vs PackagesReceived → Discrepancy",
+            "Highlight chênh lệch (dương/âm)",
+            "Quét mã/barcode để tra cứu"
+          ],
+          "integrations": [],
+          "priority": "critical"
+        },
+        {
+          "id": "F-09-02",
+          "name": "Warehouse Dashboard",
+          "type": "report",
+          "data_operations": ["read", "aggregate"],
+          "ui_requirements": ["dashboard", "chart"],
+          "business_rules": [
+            "Tổng hợp tình trạng kho: Hàng chờ dỡ, Đã kiểm, Chờ giao",
+            "COD chờ nộp"
+          ],
+          "integrations": [],
+          "priority": "medium"
+        }
+      ]
+    },
+    {
+      "id": "MOD-10",
+      "name": "Giao hàng",
+      "name_en": "Delivery Management",
+      "description": "Lập lệnh giao hàng, phân tài xế, theo dõi COD, xác nhận giao hàng (POD).",
+      "features": [
+        {
+          "id": "F-10-01",
+          "name": "Lệnh giao hàng",
+          "type": "crud",
+          "data_operations": ["create", "read", "update", "filter", "search"],
+          "ui_requirements": ["form", "data_table"],
+          "business_rules": [
+            "Trạng thái 6 bước: Chờ xếp lịch → Đã xếp lịch → Đang giao → Đã giao / Giao lỗi / Trả lại",
+            "Khung giờ: Sáng (8-12h) / Chiều (13-17h) / Cả ngày",
+            "Gán tài xế + phương tiện",
+            "COD: Số tiền cần thu + Đã thu + Đã nộp (checkbox)"
+          ],
+          "integrations": [],
+          "priority": "critical"
+        },
+        {
+          "id": "F-10-02",
+          "name": "Bảng điều phối (Dispatch Board)",
+          "type": "ui_component",
+          "data_operations": ["read", "aggregate"],
+          "ui_requirements": ["data_table", "calendar"],
+          "business_rules": [
+            "View theo ngày, nhóm theo tài xế",
+            "Mỗi tài xế: Tổng kiện, Tổng COD, Số đơn hoàn thành",
+            "Toggle: View theo tài xế / Danh sách phẳng",
+            "Quick action: Cập nhật trạng thái inline"
+          ],
+          "integrations": [],
+          "priority": "high"
+        },
+        {
+          "id": "F-10-03",
+          "name": "POD & Xác nhận giao hàng (Driver view)",
+          "type": "workflow",
+          "data_operations": ["update"],
+          "ui_requirements": ["form", "file_upload"],
+          "business_rules": [
+            "Flow tài xế: Bắt đầu giao → Đã đến nơi → Chụp ảnh → Thu COD → Hoàn tất",
+            "Cập nhật đơn hàng cha khi giao thành công (Status → Đã giao)",
+            "Lý do giao lỗi nếu thất bại",
+            "SLA giao hàng: 3 ngày, leo thang lên Trưởng kho + Sale"
+          ],
+          "integrations": [],
+          "priority": "high"
+        }
+      ]
+    },
+    {
+      "id": "MOD-11",
+      "name": "Theo dõi (Tracking)",
+      "name_en": "Tracking",
+      "description": "Tra cứu vận đơn theo mã kiện hoặc mã container, hiển thị timeline trạng thái.",
+      "features": [
+        {
+          "id": "F-11-01",
+          "name": "Tra cứu theo kiện hàng",
+          "type": "report",
+          "data_operations": ["read", "search"],
+          "ui_requirements": ["data_table"],
+          "business_rules": [
+            "Tìm theo OrderCode hoặc TrackingCN",
+            "Timeline 8 bước: Tạo đơn → Kho TQ → Container → Vận chuyển → Thông quan → Kho VN → Đang giao → Đã giao",
+            "Hiển thị ngày/giờ mỗi bước đã hoàn thành",
+            "Cross-table: Orders + WarehouseCnReceipts + Containers + WarehouseVnReceipts + DeliveryOrders"
+          ],
+          "integrations": [],
+          "priority": "high"
+        },
+        {
+          "id": "F-11-02",
+          "name": "Tra cứu theo container",
+          "type": "report",
+          "data_operations": ["read", "search"],
+          "ui_requirements": ["data_table"],
+          "business_rules": [
+            "Tìm theo ContainerCode",
+            "Thông tin: Loại, tuyến, hãng tàu, kho đích, fill rate",
+            "Danh sách items trong container"
+          ],
+          "integrations": [],
+          "priority": "medium"
+        }
+      ]
+    },
+    {
+      "id": "MOD-12",
+      "name": "Phiếu thu chi",
+      "name_en": "Payment Vouchers",
+      "description": "Quản lý phiếu thu/phiếu chi với anti-fraud detection, phê duyệt đa cấp. Là chứng từ tài chính cốt lõi.",
+      "features": [
+        {
+          "id": "F-12-01",
+          "name": "Danh sách Phiếu thu chi",
+          "type": "crud",
+          "data_operations": ["read", "filter", "search"],
+          "ui_requirements": ["data_table"],
+          "business_rules": [
+            "Tab loại: Tất cả / Phiếu thu / Phiếu chi",
+            "Tab trạng thái: Nháp → Chờ KT duyệt → KT đã duyệt → Chờ BGĐ chi → Đã chi / Từ chối",
+            "Flag indicator cho phiếu bị cảnh báo gian lận",
+            "Checkbox lọc chỉ phiếu bị flag"
+          ],
+          "integrations": [],
+          "priority": "critical"
+        },
+        {
+          "id": "F-12-02",
+          "name": "Tạo Phiếu thu chi với Anti-Fraud",
+          "type": "crud",
+          "data_operations": ["create", "read"],
+          "ui_requirements": ["form"],
+          "business_rules": [
+            "Mã phiếu: PT/PC-[YYMMDD]-[SEQ]",
+            "10 loại chi phí: Cọc/TT NCC/Thuế NK/VAT/Cước VC/Phí cảng/Phí giao hàng/Phát sinh/Hoàn tiền/COD",
+            "BLOCK (không thể submit): Thiếu liên kết đơn hàng, Đơn đã đóng, Thiếu đính kèm, Lý do < 20 ký tự, Người tạo ≠ Sale owner của đơn",
+            "FLAG (submit nhưng cảnh báo): Tổng chi > 90% doanh thu đơn, 'Phát sinh' > 5M VND, Nhiều phiếu chi nhỏ liên tiếp (>3 trong 24h), NCC không trong danh sách duyệt, Tạo ngoài giờ (trước 8:00/sau 17:30)"
+          ],
+          "integrations": [],
+          "priority": "critical"
+        },
+        {
+          "id": "F-12-03",
+          "name": "Phê duyệt Phiếu chi",
+          "type": "workflow",
+          "data_operations": ["update"],
+          "ui_requirements": ["modal"],
+          "business_rules": [
+            "≤50M: KT TT → BGĐ",
+            ">50M: KT TT → KT TH → BGĐ",
+            "SLA phê duyệt mỗi bước"
+          ],
+          "integrations": [],
+          "priority": "critical"
+        }
+      ]
+    },
+    {
+      "id": "MOD-13",
+      "name": "Công nợ phải thu (AR)",
+      "name_en": "Accounts Receivable",
+      "description": "Theo dõi công nợ khách hàng, phân tích aging, thu tiền và xử lý nợ quá hạn.",
+      "features": [
+        {
+          "id": "F-13-01",
+          "name": "Danh sách AR với Aging",
+          "type": "crud",
+          "data_operations": ["read", "update", "filter", "aggregate"],
+          "ui_requirements": ["data_table", "chart"],
+          "business_rules": [
+            "Trạng thái: Chưa thu / Thu một phần / Quá hạn / Đã thu / Xóa nợ",
+            "Aging buckets: Trong hạn / 1-15 ngày / 16-30 ngày / 31-60 ngày / >60 ngày",
+            "Mã màu aging: Xanh → Vàng → Cam → Đỏ → Đỏ đậm",
+            "Biểu đồ cột aging",
+            "Action 'Thu tiền' cập nhật PaidAmount và Remaining"
+          ],
+          "integrations": [],
+          "priority": "critical"
+        },
+        {
+          "id": "F-13-02",
+          "name": "Cảnh báo AR quá hạn",
+          "type": "workflow",
+          "data_operations": ["read", "filter"],
+          "ui_requirements": [],
+          "business_rules": [
+            "AR quá hạn > 30 ngày → chặn tạo đơn mới (Credit Hold)",
+            "Hiển thị cảnh báo trên dashboard"
+          ],
+          "integrations": [],
+          "priority": "high"
+        }
+      ]
+    },
+    {
+      "id": "MOD-14",
+      "name": "Công nợ phải trả (AP)",
+      "name_en": "Accounts Payable",
+      "description": "Theo dõi công nợ với nhà cung cấp, đa tiền tệ, liên kết phiếu chi.",
+      "features": [
+        {
+          "id": "F-14-01",
+          "name": "Danh sách AP",
+          "type": "crud",
+          "data_operations": ["read", "filter", "aggregate"],
+          "ui_requirements": ["data_table"],
+          "business_rules": [
+            "Trạng thái: Mở → Đã duyệt → Đã lên lịch → TT một phần → Đã TT",
+            "Đa tiền tệ: VND/CNY/USD",
+            "Summary cards: Tổng phải trả, Đã trả, Còn lại",
+            "Liên kết VoucherId (phiếu chi)"
+          ],
+          "integrations": [],
+          "priority": "high"
+        }
+      ]
+    },
+    {
+      "id": "MOD-15",
+      "name": "Ví khách hàng",
+      "name_en": "Customer Wallet",
+      "description": "Hệ thống ví điện tử đa tiền tệ cho khách hàng, bao gồm nạp tiền, phân bổ cọc/trả nợ, đổi tệ.",
+      "features": [
+        {
+          "id": "F-15-01",
+          "name": "Quản lý Ví KH",
+          "type": "crud",
+          "data_operations": ["read", "filter", "search"],
+          "ui_requirements": ["data_table"],
+          "business_rules": [
+            "Mỗi KH có 2 ví: VND + CNY + QR code duy nhất",
+            "Loại giao dịch: Nạp VND/Nạp CNY/Phân bổ cọc/Phân bổ trả nợ/Đổi tệ/Hoàn tiền",
+            "Nạp tiền: CHỈ KT (kế toán) xác nhận",
+            "Phân bổ: Sale cấu hình → KT duyệt từng dòng",
+            "Phân tách: Sale bán hàng, KT quản lý tiền — không trộn"
+          ],
+          "integrations": [],
+          "priority": "critical"
+        },
+        {
+          "id": "F-15-02",
+          "name": "Giao dịch ví",
+          "type": "crud",
+          "data_operations": ["create", "read", "update"],
+          "ui_requirements": ["form", "data_table"],
+          "business_rules": [
+            "Trạng thái: Chờ KT duyệt → Đã duyệt / Từ chối",
+            "Ghi nhận BalanceAfter sau mỗi giao dịch",
+            "Tỷ giá khi đổi tệ",
+            "Không phân bổ vượt số dư ví"
+          ],
+          "integrations": [],
+          "priority": "critical"
+        }
+      ]
+    },
+    {
+      "id": "MOD-16",
+      "name": "Tỷ giá",
+      "name_en": "Exchange Rates",
+      "description": "Quản lý tỷ giá hàng ngày CNY/USD → VND, chỉ KT TH được cập nhật.",
+      "features": [
+        {
+          "id": "F-16-01",
+          "name": "Cập nhật tỷ giá hàng ngày",
+          "type": "crud",
+          "data_operations": ["create", "read"],
+          "ui_requirements": ["form"],
+          "business_rules": [
+            "KT TH đặt tỷ giá CNY→VND và USD→VND mỗi ngày",
+            "Sale xem tỷ giá nhưng KHÔNG được sửa",
+            "Tỷ giá khóa theo đơn hàng tại thời điểm tạo",
+            "Fallback lấy tỷ giá gần nhất nếu chưa có ngày hôm nay"
+          ],
+          "integrations": [],
+          "priority": "high"
+        }
+      ]
+    },
+    {
+      "id": "MOD-17",
+      "name": "Hoa hồng",
+      "name_en": "Commission",
+      "description": "Tính và quản lý hoa hồng cho nhân viên sale dựa trên lợi nhuận đơn hàng đã hoàn thành.",
+      "features": [
+        {
+          "id": "F-17-01",
+          "name": "Tính hoa hồng",
+          "type": "report",
+          "data_operations": ["read", "aggregate"],
+          "ui_requirements": ["data_table", "dashboard"],
+          "business_rules": [
+            "Chỉ tính cho đơn hàng Hoàn thành",
+            "Profit = Revenue - Costs (tổng phiếu chi đã duyệt)",
+            "Margin = Profit / Revenue × 100%",
+            "Commission = Profit × Rate (10-20%, mặc định 15%)",
+            "Summary cards: Chờ duyệt / Đã duyệt / Đã trả",
+            "Cần KT TH quyết toán đơn trước khi tính"
+          ],
+          "integrations": [],
+          "priority": "high"
+        }
+      ]
+    },
+    {
+      "id": "MOD-18",
+      "name": "Nhà cung cấp",
+      "name_en": "Suppliers",
+      "description": "Quản lý nhà cung cấp hàng hóa, hãng tàu, hãng xe, agent với đánh giá sao và phê duyệt.",
+      "features": [
+        {
+          "id": "F-18-01",
+          "name": "Danh sách NCC",
+          "type": "crud",
+          "data_operations": ["create", "read", "update", "filter", "search"],
+          "ui_requirements": ["data_table", "form", "modal"],
+          "business_rules": [
+            "Loại: Hàng hóa/Vận tải/Kho bãi/Thông quan/Khác",
+            "Quốc gia: Trung Quốc/Việt Nam/Khác",
+            "Đánh giá sao 1-5",
+            "Trạng thái phê duyệt (IsApproved)",
+            "Trạng thái: Hoạt động/Tạm ngưng/Đã khóa",
+            "NCC chưa duyệt → cảnh báo khi tạo phiếu chi"
+          ],
+          "integrations": [],
+          "priority": "high"
+        }
+      ]
+    },
+    {
+      "id": "MOD-19",
+      "name": "Phê duyệt",
+      "name_en": "Approval Workflow",
+      "description": "Hệ thống phê duyệt đa cấp với SLA, leo thang tự động, hỗ trợ 7 loại yêu cầu.",
+      "features": [
+        {
+          "id": "F-19-01",
+          "name": "Hàng đợi phê duyệt",
+          "type": "crud",
+          "data_operations": ["read", "update", "filter"],
+          "ui_requirements": ["data_table", "modal"],
+          "business_rules": [
+            "Lọc theo vai trò người phê duyệt hiện tại",
+            "Tab: Chờ duyệt / Đã duyệt / Từ chối",
+            "Card hiển thị: Loại, mã tham chiếu, tóm tắt, người yêu cầu, số tiền, bước hiện tại/tổng",
+            "SLA deadline với badge quá hạn (đỏ)",
+            "Button Duyệt/Từ chối với dialog nhập lý do"
+          ],
+          "integrations": [],
+          "priority": "critical"
+        },
+        {
+          "id": "F-19-02",
+          "name": "Chuỗi phê duyệt động",
+          "type": "workflow",
+          "data_operations": ["create", "update"],
+          "ui_requirements": [],
+          "business_rules": [
+            "7 loại: Giảm giá / Hủy đơn / Phiếu chi / Container plan / Xuất kho / Ân hạn / Miễn cọc",
+            "Giảm giá ≤3%: Leader + KT TT (2h mỗi bước)",
+            "Giảm giá 3-5%: Leader + KT TT → GĐ KD (4h)",
+            "Giảm giá >5% hoặc đơn >100M: Leader + KT TT → GĐ KD → BGĐ (4-8h)",
+            "Hủy đơn chưa cọc: Leader (24h)",
+            "Hủy đơn có cọc chưa mua: Leader → GĐ KD",
+            "Hủy đơn đã mua: GĐ KD → BGĐ",
+            "Phiếu chi ≤50M: KT TT → BGĐ",
+            "Phiếu chi >50M: KT TT → KT TH → BGĐ",
+            "Container plan: NV XNK → TP XNK → COO",
+            "Xuất kho: NV kho → Trưởng kho",
+            "Ân hạn: Sale → CFO → CEO",
+            "Miễn cọc: Leader → BGĐ"
+          ],
+          "integrations": [],
+          "priority": "critical"
+        },
+        {
+          "id": "F-19-03",
+          "name": "SLA & Leo thang tự động",
+          "type": "workflow",
+          "data_operations": ["read", "update"],
+          "ui_requirements": [],
+          "business_rules": [
+            "Mỗi bước có SLA riêng (2-48 giờ)",
+            "Quá SLA → đánh dấu IsOverdue + leo thang lên cấp trên",
+            "Phê duyệt chung: auto-escalate sau 24h không phản hồi",
+            "Kiểm tra SLA khi load trang hoặc chạy định kỳ"
+          ],
+          "integrations": [],
+          "priority": "high"
+        },
+        {
+          "id": "F-19-04",
+          "name": "Ủy quyền phê duyệt",
+          "type": "workflow",
+          "data_operations": ["create", "read", "update"],
+          "ui_requirements": ["form"],
+          "business_rules": [
+            "Người phê duyệt có thể ủy quyền cho người khác",
+            "Trạng thái: Đã ủy quyền"
+          ],
+          "integrations": [],
+          "priority": "medium"
+        }
+      ]
+    },
+    {
+      "id": "MOD-20",
+      "name": "Nhân sự",
+      "name_en": "Human Resources",
+      "description": "Quản lý nhân viên, agent TQ, chấm công, nghỉ phép, bảng lương theo 7 phòng ban.",
+      "features": [
+        {
+          "id": "F-20-01",
+          "name": "Danh sách Nhân viên",
+          "type": "crud",
+          "data_operations": ["create", "read", "update", "filter", "search"],
+          "ui_requirements": ["data_table", "form"],
+          "business_rules": [
+            "7 phòng ban: BGĐ/KD/MKT/KT/XNK/Kho TQ/Kho VN",
+            "17 vai trò: CEO/COO/CFO/GĐ KD/Leader/Sale/NV MKT/CSKH/KT TH/KT TT/KT CP/TP XNK/NV XNK/Trưởng kho/NV kho/Tài xế/Agent TQ",
+            "Chi nhánh: HN/HCM/TQ",
+            "Trạng thái: Đang làm/Thử việc/Nghỉ phép/Đã nghỉ",
+            "Liên kết Manager (ManagerId)"
+          ],
+          "integrations": [],
+          "priority": "high"
+        },
+        {
+          "id": "F-20-02",
+          "name": "Chấm công",
+          "type": "crud",
+          "data_operations": ["create", "read", "filter"],
+          "ui_requirements": ["data_table", "calendar"],
+          "business_rules": ["Ghi nhận chấm công hàng ngày"],
+          "integrations": [],
+          "priority": "medium"
+        },
+        {
+          "id": "F-20-03",
+          "name": "Nghỉ phép",
+          "type": "crud",
+          "data_operations": ["create", "read", "update"],
+          "ui_requirements": ["form", "data_table"],
+          "business_rules": ["Đăng ký nghỉ phép, phê duyệt từ quản lý"],
+          "integrations": [],
+          "priority": "medium"
+        },
+        {
+          "id": "F-20-04",
+          "name": "Bảng lương",
+          "type": "report",
+          "data_operations": ["read", "aggregate"],
+          "ui_requirements": ["data_table"],
+          "business_rules": ["Tính lương cơ bản + phụ cấp + hoa hồng"],
+          "integrations": [],
+          "priority": "medium"
+        }
+      ]
+    },
+    {
+      "id": "MOD-21",
+      "name": "Tài xế & Phương tiện",
+      "name_en": "Drivers & Vehicles",
+      "description": "Quản lý đội xe và tài xế giao hàng, bảo trì, bảo hiểm.",
+      "features": [
+        {
+          "id": "F-21-01",
+          "name": "Quản lý Tài xế",
+          "type": "crud",
+          "data_operations": ["create", "read", "update", "filter"],
+          "ui_requirements": ["data_table", "form"],
+          "business_rules": [
+            "Thông tin: Mã, Tên, SĐT, Số GPLX, Hạn GPLX",
+            "Gán phương tiện (AssignedVehicleId)",
+            "Trạng thái: Đang hoạt động/Nghỉ phép/Nghỉ việc",
+            "Tracking: Số đơn giao hôm nay, Tổng đơn giao"
+          ],
+          "integrations": [],
+          "priority": "medium"
+        },
+        {
+          "id": "F-21-02",
+          "name": "Quản lý Phương tiện",
+          "type": "crud",
+          "data_operations": ["create", "read", "update", "filter"],
+          "ui_requirements": ["data_table", "form"],
+          "business_rules": [
+            "Loại: Xe tải 1T/2.5T/5T/Xe con",
+            "Trạng thái: Sẵn sàng/Đang sử dụng/Bảo trì/Ngưng hoạt động",
+            "Theo dõi: Bảo hiểm hết hạn, Ngày bảo trì",
+            "Tải trọng tối đa (kg) + CBM tối đa"
+          ],
+          "integrations": [],
+          "priority": "medium"
+        }
+      ]
+    },
+    {
+      "id": "MOD-22",
+      "name": "Vấn đề chất lượng",
+      "name_en": "Quality Issues",
+      "description": "Quản lý khiếu nại chất lượng từ khách hàng, theo dõi xử lý và bồi thường.",
+      "features": [
+        {
+          "id": "F-22-01",
+          "name": "Danh sách Vấn đề chất lượng",
+          "type": "crud",
+          "data_operations": ["create", "read", "update", "filter"],
+          "ui_requirements": ["data_table", "form"],
+          "business_rules": [
+            "Loại: Thiếu hàng/Hàng lỗi/Sai hàng/Hàng hư hỏng/Chậm giao/Khác",
+            "Mức độ: Thấp/Trung bình/Cao/Nghiêm trọng",
+            "Trạng thái: Mở → Đang xử lý → Chờ KH xác nhận → Đã giải quyết → Đã đóng",
+            "Bồi thường (CompensationAmount)",
+            "Phân công xử lý (AssignedTo) + Leo thang (EscalatedTo)"
+          ],
+          "integrations": [],
+          "priority": "high"
+        }
+      ]
+    },
+    {
+      "id": "MOD-23",
+      "name": "Vấn đề kiện hàng",
+      "name_en": "Package Issues",
+      "description": "Quản lý sự cố liên quan đến kiện hàng tại kho: thiếu kiện, sai hàng, hư hỏng, kiện không xác định.",
+      "features": [
+        {
+          "id": "F-23-01",
+          "name": "Danh sách Vấn đề kiện hàng",
+          "type": "crud",
+          "data_operations": ["create", "read", "update", "filter"],
+          "ui_requirements": ["data_table", "form"],
+          "business_rules": [
+            "Loại: Thiếu kiện/Sai hàng/Hàng hư hỏng/Kiện không xác định/Sai kích thước/Nhãn sai",
+            "Mức độ: Nhẹ/Trung bình/Nặng/Nghiêm trọng",
+            "Trạng thái: Mở → Đang xử lý → Chờ KH → Đã giải quyết → Đã đóng",
+            "Liên kết ReceiptId + OrderId"
+          ],
+          "integrations": [],
+          "priority": "medium"
+        }
+      ]
+    },
+    {
+      "id": "MOD-24",
+      "name": "Dịch vụ kho",
+      "name_en": "Warehouse Services",
+      "description": "Quản lý các dịch vụ giá trị gia tăng tại kho: kiểm đếm, đóng gói lại, kiện gỗ, chụp ảnh, quay video.",
+      "features": [
+        {
+          "id": "F-24-01",
+          "name": "Quản lý Dịch vụ kho",
+          "type": "crud",
+          "data_operations": ["create", "read", "update", "filter"],
+          "ui_requirements": ["data_table", "form"],
+          "business_rules": [
+            "Loại DV: Kiểm đếm/Đóng gói lại/Kiện gỗ/Ảnh chi tiết/Video mở kiện",
+            "Trạng thái: Chờ xử lý → Đang xử lý → Hoàn thành → Đã tính phí",
+            "Tính phí: Quantity × UnitPrice = TotalFee",
+            "Liên kết phiếu nhập kho (ReceiptId) + đơn hàng (OrderId)"
+          ],
+          "integrations": [],
+          "priority": "medium"
+        }
+      ]
+    },
+    {
+      "id": "MOD-25",
+      "name": "Nhãn hải quan",
+      "name_en": "Labels",
+      "description": "Quản lý nhãn hải quan cho hàng chính ngạch, in nhãn và kiểm tra trạng thái.",
+      "features": [
+        {
+          "id": "F-25-01",
+          "name": "Quản lý Nhãn",
+          "type": "crud",
+          "data_operations": ["read", "update", "filter"],
+          "ui_requirements": ["data_table"],
+          "business_rules": [
+            "Trạng thái nhãn: Tem HQ OK / Cần in bù / Chỉ mã nội bộ",
+            "Liên kết với phiếu nhập kho TQ",
+            "Bắt buộc cho đơn UTXNK/LCLCN"
+          ],
+          "integrations": [],
+          "priority": "medium"
+        }
+      ]
+    },
+    {
+      "id": "MOD-26",
+      "name": "Công việc",
+      "name_en": "Tasks",
+      "description": "Danh sách công việc/hành động cần thực hiện, lọc theo phòng ban, theo dõi SLA.",
+      "features": [
+        {
+          "id": "F-26-01",
+          "name": "Danh sách Công việc",
+          "type": "crud",
+          "data_operations": ["read", "filter", "search"],
+          "ui_requirements": ["data_table"],
+          "business_rules": [
+            "Tab: Tất cả / Của tôi / Quá hạn",
+            "Lọc nhanh theo phòng ban: Sale/Kho/KT/XNK",
+            "Dữ liệu từ OrderHistory (tái sử dụng)",
+            "Hiển thị: Action, Note, OrderId, Performer, From→To status",
+            "Thời gian tương đối (vd: 2 giờ trước)"
+          ],
+          "integrations": [],
+          "priority": "medium"
+        }
+      ]
+    },
+    {
+      "id": "MOD-27",
+      "name": "Báo cáo",
+      "name_en": "Reports",
+      "description": "Hệ thống báo cáo tổng hợp cho các phòng ban.",
+      "features": [
+        {
+          "id": "F-27-01",
+          "name": "Báo cáo tổng hợp",
+          "type": "report",
+          "data_operations": ["read", "aggregate", "filter", "export"],
+          "ui_requirements": ["data_table", "chart", "dashboard"],
+          "business_rules": [
+            "Báo cáo doanh thu theo tháng/quý/năm",
+            "Báo cáo đơn hàng theo trạng thái",
+            "Báo cáo công nợ (AR aging)",
+            "Báo cáo hoa hồng",
+            "Báo cáo hiệu suất nhân viên"
+          ],
+          "integrations": [],
+          "priority": "high"
+        }
+      ]
+    },
+    {
+      "id": "MOD-28",
+      "name": "Tiện ích hệ thống",
+      "name_en": "System Utilities",
+      "description": "Các chức năng hỗ trợ: thông báo, tài liệu, khiếu nại, bù trừ công nợ, hóa đơn, sổ cái.",
+      "features": [
+        {
+          "id": "F-28-01",
+          "name": "Thông báo",
+          "type": "ui_component",
+          "data_operations": ["read"],
+          "ui_requirements": ["data_table"],
+          "business_rules": ["Trung tâm thông báo cho các sự kiện hệ thống"],
+          "integrations": [],
+          "priority": "medium"
+        },
+        {
+          "id": "F-28-02",
+          "name": "Quản lý Tài liệu",
+          "type": "crud",
+          "data_operations": ["create", "read", "filter"],
+          "ui_requirements": ["data_table", "file_upload"],
+          "business_rules": ["Upload và quản lý chứng từ, hợp đồng, hóa đơn"],
+          "integrations": [],
+          "priority": "medium"
+        },
+        {
+          "id": "F-28-03",
+          "name": "Khiếu nại",
+          "type": "crud",
+          "data_operations": ["create", "read", "update", "filter"],
+          "ui_requirements": ["data_table", "form"],
+          "business_rules": ["Tiếp nhận và xử lý khiếu nại từ khách hàng"],
+          "integrations": [],
+          "priority": "medium"
+        },
+        {
+          "id": "F-28-04",
+          "name": "Bù trừ công nợ",
+          "type": "workflow",
+          "data_operations": ["read", "update"],
+          "ui_requirements": ["form", "data_table"],
+          "business_rules": ["Bù trừ AR/AP giữa các đơn hàng hoặc khách hàng"],
+          "integrations": [],
+          "priority": "low"
+        },
+        {
+          "id": "F-28-05",
+          "name": "Hóa đơn",
+          "type": "crud",
+          "data_operations": ["create", "read", "filter"],
+          "ui_requirements": ["data_table", "form"],
+          "business_rules": ["Tạo và quản lý hóa đơn bán hàng"],
+          "integrations": [],
+          "priority": "medium"
+        },
+        {
+          "id": "F-28-06",
+          "name": "Sổ cái",
+          "type": "report",
+          "data_operations": ["read", "aggregate", "filter"],
+          "ui_requirements": ["data_table"],
+          "business_rules": ["Sổ cái tổng hợp các bút toán tài chính"],
+          "integrations": [],
+          "priority": "low"
+        },
+        {
+          "id": "F-28-07",
+          "name": "Tài sản",
+          "type": "crud",
+          "data_operations": ["create", "read", "update"],
+          "ui_requirements": ["data_table", "form"],
+          "business_rules": ["Quản lý tài sản cố định công ty"],
+          "integrations": [],
+          "priority": "low"
+        },
+        {
+          "id": "F-28-08",
+          "name": "Ngân sách",
+          "type": "report",
+          "data_operations": ["read", "aggregate"],
+          "ui_requirements": ["data_table", "chart"],
+          "business_rules": ["Theo dõi ngân sách và chi tiêu theo phòng ban"],
+          "integrations": [],
+          "priority": "low"
+        },
+        {
+          "id": "F-28-09",
+          "name": "Chi phí vận hành",
+          "type": "report",
+          "data_operations": ["read", "aggregate", "filter"],
+          "ui_requirements": ["data_table"],
+          "business_rules": ["Tổng hợp chi phí vận hành theo đơn hàng và tổng thể"],
+          "integrations": [],
+          "priority": "medium"
+        },
+        {
+          "id": "F-28-10",
+          "name": "Mua hàng",
+          "type": "crud",
+          "data_operations": ["create", "read", "update"],
+          "ui_requirements": ["data_table", "form"],
+          "business_rules": ["Quản lý đơn mua hàng từ NCC TQ cho đơn MHH/UTXNK"],
+          "integrations": [],
+          "priority": "high"
+        },
+        {
+          "id": "F-28-11",
+          "name": "Tồn kho",
+          "type": "report",
+          "data_operations": ["read", "aggregate"],
+          "ui_requirements": ["data_table"],
+          "business_rules": ["Tổng hợp hàng tồn kho TQ + VN"],
+          "integrations": [],
+          "priority": "medium"
+        }
+      ]
+    },
+    {
+      "id": "MOD-29",
+      "name": "Quản trị hệ thống",
+      "name_en": "System Administration",
+      "description": "Quản lý người dùng, cài đặt hệ thống, tích hợp bên ngoài, khởi tạo dữ liệu.",
+      "features": [
+        {
+          "id": "F-29-01",
+          "name": "Quản lý Người dùng",
+          "type": "crud",
+          "data_operations": ["create", "read", "update"],
+          "ui_requirements": ["data_table", "form"],
+          "business_rules": ["Quản lý tài khoản, phân quyền truy cập"],
+          "integrations": [],
+          "priority": "high"
+        },
+        {
+          "id": "F-29-02",
+          "name": "Cài đặt hệ thống",
+          "type": "ui_component",
+          "data_operations": ["read", "update"],
+          "ui_requirements": ["form"],
+          "business_rules": [
+            "Thông tin cá nhân (đọc)",
+            "Tỷ giá (chỉ KT TH sửa)",
+            "Ma trận phê duyệt (tham khảo)",
+            "Thông tin hệ thống (version, env)"
+          ],
+          "integrations": [],
+          "priority": "medium"
+        },
+        {
+          "id": "F-29-03",
+          "name": "Tích hợp",
+          "type": "integration",
+          "data_operations": [],
+          "ui_requirements": ["form"],
+          "business_rules": ["Cấu hình tích hợp với hệ thống bên ngoài"],
+          "integrations": ["Zalo", "1688/Taobao", "Hải quan điện tử"],
+          "priority": "low"
+        },
+        {
+          "id": "F-29-04",
+          "name": "Khởi tạo bảng dữ liệu",
+          "type": "batch_operation",
+          "data_operations": ["create"],
+          "ui_requirements": [],
+          "business_rules": [
+            "Khởi tạo 23+ bảng dữ liệu cùng lúc",
+            "Idempotent — bỏ qua bảng đã tồn tại",
+            "Hiển thị tiến độ OK/Error cho từng bảng"
+          ],
+          "integrations": [],
+          "priority": "critical"
+        }
+      ]
+    }
+  ],
+  "cross_cutting_concerns": {
+    "auth_roles": [
+      "CEO",
+      "COO",
+      "CFO",
+      "GĐ KD (Giám đốc Kinh doanh)",
+      "Leader (Trưởng nhóm Sale)",
+      "Sale",
+      "NV MKT (Marketing)",
+      "CSKH (Chăm sóc Khách hàng)",
+      "KT TH (Kế toán Tổng hợp)",
+      "KT TT (Kế toán Thanh toán)",
+      "KT CP (Kế toán Chi phí)",
+      "TP XNK (Trưởng phòng Xuất Nhập Khẩu)",
+      "NV XNK",
+      "Trưởng kho",
+      "NV kho",
+      "Tài xế",
+      "Agent TQ (Đại lý Trung Quốc)"
+    ],
+    "languages": ["vi", "zh"],
+    "currencies": ["VND", "CNY", "USD"],
+    "data_volume": "~50 nhân viên (mục tiêu 70-100), hàng nghìn đơn hàng/năm, doanh thu 288B VND (mục tiêu 432B VND 2026)",
+    "concurrent_users": "50-100 người dùng đồng thời (target)",
+    "branches": ["HN (Hà Nội)", "HCM (Hồ Chí Minh)", "TQ (Trung Quốc - kho)"],
+    "special_requirements": [
+      "Anti-fraud detection cho phiếu thu/chi (5 BLOCK rules + 5 FLAG rules)",
+      "Multi-level approval workflow với SLA và auto-escalation",
+      "13-stage order lifecycle với conditional flow theo 4 loại dịch vụ",
+      "Giao diện song ngữ Việt-Trung cho kho TQ",
+      "Mobile-first UI cho tài xế và nhân viên kho",
+      "Data visibility theo vai trò: Sale chỉ thấy đơn mình, Leader thấy nhóm, GĐ KD thấy tất cả",
+      "Tỷ giá khóa tại thời điểm tạo đơn, chỉ KT TH được cập nhật",
+      "Wallet separation: Sale bán hàng, KT quản lý tiền — không trộn",
+      "Credit Hold: AR quá hạn > 30 ngày chặn tạo đơn mới",
+      "Max 200 records per SDK request — bắt buộc phân trang",
+      "Equality-only SDK filters — lọc phức tạp phải client-side",
+      "No per-user auth trong App Builder — phải dùng filter params hoặc separate apps",
+      "Token-based auth — không có user identity trong generated apps",
+      "Customer QR code cho ví điện tử",
+      "Barcode/QR scanning cho nhập/xuất kho",
+      "CBM calculation: L×W×H/1,000,000; Volumetric weight = CBM×167",
+      "COD collection tracking và nộp tiền",
+      "ERP go-live target: July-August 2026"
+    ],
+    "data_tables": {
+      "total": 28,
+      "core_tables_23": [
+        "Leads", "LeadActivities", "Customers", "Quotations", "QuotationItems",
+        "Orders", "OrderItems", "OrderHistory", "Contracts",
+        "WarehouseCnReceipts", "Containers", "ContainerItems",
+        "WarehouseVnReceipts", "DeliveryOrders",
+        "PaymentVouchers", "WalletTransactions", "AccountsReceivable", "AccountsPayable",
+        "ExchangeRates", "Suppliers", "Approvals", "QualityIssues", "Employees"
+      ],
+      "additional_tables_5": [
+        "Drivers", "Vehicles", "PackageIssues", "WarehouseServices", "AccountsReceivable (static)"
+      ]
+    },
+    "entity_codes": {
+      "Order": "DH-[YYMMDD]-[SEQ]",
+      "Quotation": "BG-[YYMMDD]-[SEQ]",
+      "Customer": "KH-[SEQ]",
+      "Container": "CNT-[YYMMDD]-[SEQ]",
+      "PaymentVoucher": "PT/PC-[YYMMDD]-[SEQ]",
+      "Contract": "HD-[YYMMDD]-[SEQ]"
+    },
+    "sla_targets": {
+      "CSKH_responds_to_data": "15 phút → escalate GĐ KD",
+      "Sale_contacts_lead": "2 giờ → escalate Leader",
+      "Send_quotation": "4 giờ → escalate Leader",
+      "Approval_response": "2 giờ → auto-escalate sau 24h",
+      "Warehouse_CN_receives": "24 giờ → escalate Sale",
+      "Delivery": "3 ngày → escalate Trưởng kho + Sale"
+    }
+  }
+}
