@@ -839,7 +839,7 @@ export async function listRecords(
   tableId: string,
   options?: ListRecordsExtOptions,
 ): Promise<{ records: Record[]; total: number }> {
-  return extRequest(
+  const data = await extRequest<{ rows?: Record[]; records?: Record[]; total: number }>(
     `/tables/${tableId}/records:query`,
     {
       method: 'POST',
@@ -847,6 +847,7 @@ export async function listRecords(
     },
     `listing records in ${tableId}`,
   );
+  return { records: data?.rows ?? data?.records ?? [], total: data?.total ?? 0 };
 }
 
 // ---------------------------------------------------------------------------
@@ -868,7 +869,7 @@ export async function searchRecords(
   tableId: string,
   options: SearchRecordsOptions,
 ): Promise<{ records: Record[]; total: number }> {
-  return extRequest(
+  const data = await extRequest<{ rows?: Record[]; records?: Record[]; total: number }>(
     `/tables/${tableId}/records:search`,
     {
       method: 'POST',
@@ -876,6 +877,7 @@ export async function searchRecords(
     },
     `searching records in ${tableId}`,
   );
+  return { records: data?.rows ?? data?.records ?? [], total: data?.total ?? 0 };
 }
 
 // ---------------------------------------------------------------------------
