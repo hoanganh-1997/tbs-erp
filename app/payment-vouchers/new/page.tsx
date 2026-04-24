@@ -10,7 +10,7 @@ import { getExchangeRates } from "@/lib/exchange-rates";
 import type { Order } from "@/lib/orders";
 import type { PaymentVoucher } from "@/lib/payment-vouchers";
 import type { ExchangeRate } from "@/lib/exchange-rates";
-import { uploadFile, type AttachmentRef } from "@/lib/inforact-sdk-ext";
+import { uploadFile, type AttachmentRef } from "@/lib/inforact-sdk";
 import { ArrowLeft, AlertTriangle, Search, Check, Paperclip, X as XIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 

@@ -10,7 +10,7 @@ import {
   searchRecords,
   type ComplexFilter,
   type ListRecordsExtOptions,
-} from "./inforact-sdk-ext";
+} from "./inforact-sdk";
 
 export interface ListAllOptions extends Omit<ListRecordsExtOptions, "skip" | "take"> {
   maxRecords?: number;

@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { listApprovals } from "@/lib/approvals";
 import type { Approval } from "@/lib/approvals";
-import { getCurrentUser, decideApproval, listGroups, type CurrentUser, type GroupMember } from "@/lib/inforact-sdk-ext";
+import { getCurrentUser, decideApproval, listGroups, type CurrentUser, type GroupMember } from "@/lib/inforact-sdk";
 import { cn, formatDate, formatCurrency } from "@/lib/utils";
 import { PageHeader } from "@/components/page-header";
 import { Search, X, ChevronLeft, ChevronRight, Clock, AlertTriangle, CheckCircle, XCircle, ShieldCheck, Lock } from "lucide-react";

@@ -1,7 +1,7 @@
 "use server";
 import { getRecords, getRecord, createRecord, updateRecord, deleteRecord, deleteRecords } from "@/lib/inforact-sdk";
 import type { ListRecordsOptions, CreateTableField } from "@/lib/inforact-sdk";
-import { listRecords, searchRecords, type AttachmentRef, type ComplexFilter } from "@/lib/inforact-sdk-ext";
+import { listRecords, searchRecords, type AttachmentRef, type ComplexFilter } from "@/lib/inforact-sdk";
 import { ensureTable } from "@/lib/table-registry";
 
 const TABLE_NAME = 'PaymentVouchers';

@@ -8,7 +8,7 @@ import { createQuotationItem } from "@/lib/quotation-items";
 import { getAllCustomers } from "@/lib/customers";
 import { getLead, updateLead } from "@/lib/leads";
 import { getExchangeRates } from "@/lib/exchange-rates";
-import { createApprovalRequest, type ApprovalStep } from "@/lib/inforact-sdk-ext";
+import { createApprovalRequest, type ApprovalStep } from "@/lib/inforact-sdk";
 import { generateCode, formatCurrency } from "@/lib/utils";
 import { PageHeader } from "@/components/page-header";
 import { toast } from "sonner";

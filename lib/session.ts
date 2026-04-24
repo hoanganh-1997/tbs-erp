@@ -1,7 +1,7 @@
 "use server";
 
 import { cache } from "react";
-import { getCurrentUser as sdkGetCurrentUser, type CurrentUser } from "./inforact-sdk-ext";
+import { getCurrentUser as sdkGetCurrentUser, type CurrentUser } from "./inforact-sdk";
 
 export type { CurrentUser };
 
