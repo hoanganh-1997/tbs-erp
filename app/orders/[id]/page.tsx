@@ -990,7 +990,7 @@ export default function OrderDetailPage() {
 
     if (activeTab === "Hàng hóa" && !itemsLoaded) {
       setItemsLoading(true);
-      getOrderItems({ filters: [{ field: "OrderId", value: order.id }] })
+      getOrderItems({ filters: { OrderId: order.id } })
         .then((res) => {
           setItems(res.data);
           setItemsLoaded(true);
@@ -1003,10 +1003,10 @@ export default function OrderDetailPage() {
       setFinanceLoading(true);
       Promise.all([
         getPaymentVouchers({
-          filters: [{ field: "OrderId", value: order.id }],
+          filters: { OrderId: order.id },
         }),
         getAccountsReceivable({
-          filters: [{ field: "OrderId", value: order.id }],
+          filters: { OrderId: order.id },
         }),
       ])
         .then(([vRes, arRes]) => {
@@ -1022,13 +1022,13 @@ export default function OrderDetailPage() {
       setLogisticsLoading(true);
       Promise.all([
         getWarehouseCnReceipts({
-          filters: [{ field: "OrderId", value: order.id }],
+          filters: { OrderId: order.id },
         }),
         getWarehouseVnReceipts({
-          filters: [{ field: "OrderId", value: order.id }],
+          filters: { OrderId: order.id },
         }),
         getDeliveryOrders({
-          filters: [{ field: "OrderId", value: order.id }],
+          filters: { OrderId: order.id },
         }),
       ])
         .then(([cnRes, vnRes, delRes]) => {
@@ -1044,7 +1044,7 @@ export default function OrderDetailPage() {
     if (activeTab === "Lịch sử" && !historyLoaded) {
       setHistoryLoading(true);
       getOrderHistories({
-        filters: [{ field: "OrderId", value: order.id }],
+        filters: { OrderId: order.id },
       })
         .then((res) => {
           setHistory(res.data);
@@ -1170,7 +1170,7 @@ export default function OrderDetailPage() {
     try {
       // Find the most recent history entry that transitioned TO "Tạm giữ"
       const { data: histData } = await getOrderHistories({
-        filters: [{ field: "OrderId", value: order.id }],
+        filters: { OrderId: order.id },
         sortField: "createdAt",
         sortDirection: "desc",
         take: 10,
@@ -1227,7 +1227,7 @@ export default function OrderDetailPage() {
       // Clone order items
       if (!itemsLoaded) {
         const { data: srcItems } = await getOrderItems({
-          filters: [{ field: "OrderId", value: order.id }],
+          filters: { OrderId: order.id },
         });
         for (const item of srcItems) {
           await createOrderItem({
