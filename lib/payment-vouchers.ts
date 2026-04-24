@@ -1,6 +1,7 @@
 "use server";
 import { getRecords, getRecord, createRecord, updateRecord, deleteRecord, deleteRecords } from "@/lib/inforact-sdk";
 import type { ListRecordsOptions, CreateTableField } from "@/lib/inforact-sdk";
+import { listRecords, searchRecords, type AttachmentRef, type ComplexFilter } from "@/lib/inforact-sdk-ext";
 import { ensureTable } from "@/lib/table-registry";
 
 const TABLE_NAME = 'PaymentVouchers';
@@ -32,6 +33,7 @@ const TABLE_FIELDS: CreateTableField[] = [
   { name: 'CreatedBy', type: 'TEXT' },
   { name: 'ApprovedByKT', type: 'TEXT' },
   { name: 'ApprovedByMgmt', type: 'TEXT' },
+  { name: 'Attachments', type: 'ATTACHMENT' },
 ];
 
 let _tableId: string | null = null;
@@ -62,6 +64,7 @@ export interface PaymentVoucher {
   CreatedBy?: string;
   ApprovedByKT?: string;
   ApprovedByMgmt?: string;
+  Attachments?: AttachmentRef[];
   createdAt?: string;
   updatedAt?: string;
 }
@@ -76,6 +79,31 @@ function mapRecord(record: any): PaymentVoucher {
 export async function getPaymentVouchers(options?: ListRecordsOptions): Promise<{ data: PaymentVoucher[]; total: number }> {
   const tableId = await getTableId();
   const result = await getRecords(tableId, options);
+  return { data: result.records.map(mapRecord), total: result.total };
+}
+
+export interface ListPaymentVouchersOptions {
+  filters?: ComplexFilter;
+  sort?: { field: string; direction: 'asc' | 'desc' }[];
+  skip?: number;
+  take?: number;
+}
+
+export async function listPaymentVouchers(options: ListPaymentVouchersOptions = {}): Promise<{ data: PaymentVoucher[]; total: number }> {
+  const tableId = await getTableId();
+  const result = await listRecords(tableId, options);
+  return { data: result.records.map(mapRecord), total: result.total };
+}
+
+export async function searchPaymentVouchers(query: string, filters?: ComplexFilter, extra?: { skip?: number; take?: number }): Promise<{ data: PaymentVoucher[]; total: number }> {
+  const tableId = await getTableId();
+  const result = await searchRecords(tableId, {
+    query,
+    fields: ['VoucherCode', 'Beneficiary', 'Description', 'Notes'],
+    filters,
+    skip: extra?.skip,
+    take: extra?.take,
+  });
   return { data: result.records.map(mapRecord), total: result.total };
 }
 

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getOrder, updateOrder, type Order } from "@/lib/orders";
-import { getCustomers, type Customer } from "@/lib/customers";
+import { getAllCustomers, type Customer } from "@/lib/customers";
 import { createOrderHistory } from "@/lib/order-history";
 import Link from "next/link";
 import { ArrowLeft, Loader2 } from "lucide-react";
@@ -55,7 +55,7 @@ export default function EditOrderPage() {
       try {
         const [orderData, { data: customerData }] = await Promise.all([
           getOrder(orderId),
-          getCustomers({ take: 200, sortField: "createdAt", sortDirection: "desc" }),
+          getAllCustomers(),
         ]);
         setOrder(orderData);
         setCustomers(customerData);

@@ -15,6 +15,7 @@ import {
   type Container,
   type CreateContainerInput,
 } from "@/lib/containers";
+import { AddItemsToContainerModal } from "@/components/add-items-to-container-modal";
 
 const STATUS_TABS = [
   "Tất cả",
@@ -300,6 +301,7 @@ export default function ContainersPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("Tất cả");
   const [showCreate, setShowCreate] = useState(false);
+  const [addItemsTarget, setAddItemsTarget] = useState<Container | null>(null);
   const [page, setPage] = useState(1);
 
   const fetchData = useCallback(async () => {
@@ -362,6 +364,13 @@ export default function ContainersPage() {
         open={showCreate}
         onClose={() => setShowCreate(false)}
         onCreated={fetchData}
+      />
+
+      <AddItemsToContainerModal
+        open={!!addItemsTarget}
+        container={addItemsTarget}
+        onClose={() => setAddItemsTarget(null)}
+        onSaved={fetchData}
       />
 
       {/* KPI Cards */}
@@ -458,6 +467,7 @@ export default function ContainersPage() {
                           ) : (
                             <button
                               key={action.label}
+                              onClick={() => setAddItemsTarget(c)}
                               className="px-2.5 py-1 rounded text-xs font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors"
                             >
                               {action.label}

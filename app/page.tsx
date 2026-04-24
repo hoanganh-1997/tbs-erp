@@ -1,34 +1,42 @@
 "use client";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { toast } from "sonner";
 import { getOrders, type Order } from "@/lib/orders";
 import { getAccountsReceivable, type AccountReceivable } from "@/lib/accounts-receivable";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { StatusBadge } from "@/components/status-badge";
-import { ShoppingCart, DollarSign, Users, CheckCircle, TrendingDown } from "lucide-react";
+import { ShoppingCart, DollarSign, Users, CheckCircle, TrendingDown, AlertTriangle, RefreshCw } from "lucide-react";
 
 export default function DashboardPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [arRecords, setArRecords] = useState<AccountReceivable[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [period, setPeriod] = useState("Tháng");
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const [ordersRes, arRes] = await Promise.all([
-          getOrders({ take: 200, sortField: 'createdAt', sortDirection: 'desc' }),
-          getAccountsReceivable({ take: 200, sortField: "createdAt", sortDirection: "desc" }),
-        ]);
-        setOrders(ordersRes.data);
-        setArRecords(arRes.data);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const [ordersRes, arRes] = await Promise.all([
+        getOrders({ take: 200, sortField: 'createdAt', sortDirection: 'desc' }),
+        getAccountsReceivable({ take: 200, sortField: "createdAt", sortDirection: "desc" }),
+      ]);
+      setOrders(ordersRes.data);
+      setArRecords(arRes.data);
+    } catch (e: any) {
+      const msg = e?.message || "Không rõ nguyên nhân";
+      console.error("Failed to load dashboard:", e);
+      toast.error(`Lỗi tải dữ liệu tổng quan: ${msg}`);
+      setLoadError(msg);
+    } finally {
+      setLoading(false);
     }
-    loadData();
   }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const filteredOrders = useMemo(() => {
     const now = new Date();
@@ -64,8 +72,43 @@ export default function DashboardPage() {
     return (
       <div className="space-y-6 animate-pulse">
         <div className="h-8 bg-gray-200 rounded w-48" />
-        <div className="grid grid-cols-4 gap-4">
-          {[1,2,3,4].map(i => <div key={i} className="h-32 bg-gray-200 rounded-lg" />)}
+        <div className="h-4 bg-gray-100 rounded w-64" />
+        <div className="flex gap-2">
+          {[1,2,3,4,5].map(i => <div key={i} className="h-9 w-20 bg-gray-100 rounded-full" />)}
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1,2,3,4].map(i => <div key={i} className="h-32 bg-gray-200 rounded-xl" />)}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="h-64 bg-gray-100 rounded-xl" />
+          <div className="h-64 bg-gray-100 rounded-xl" />
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-3">
+          <div className="h-5 bg-gray-200 rounded w-48" />
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="h-10 bg-gray-100 rounded" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-[#2D3A8C]">Tổng quan</h1>
+        </div>
+        <div className="bg-red-50 border border-red-200 rounded-xl p-8 flex flex-col items-center text-center">
+          <AlertTriangle className="w-12 h-12 text-red-500 mb-3" />
+          <h3 className="text-lg font-medium text-red-900">Không tải được dữ liệu</h3>
+          <p className="text-sm text-red-700 mt-1 max-w-md">{loadError}</p>
+          <button
+            onClick={loadData}
+            className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors"
+          >
+            <RefreshCw className="w-4 h-4" /> Thử lại
+          </button>
         </div>
       </div>
     );

@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createContract } from "@/lib/contracts";
-import { getCustomers } from "@/lib/customers";
+import { getAllCustomers } from "@/lib/customers";
 import { getOrders } from "@/lib/orders";
 import type { Customer } from "@/lib/customers";
 import type { Order } from "@/lib/orders";
@@ -46,7 +46,7 @@ export default function NewContractPage() {
     async function load() {
       try {
         const [custRes, ordersRes] = await Promise.all([
-          getCustomers({ take: 200, sortField: "createdAt", sortDirection: "desc" }),
+          getAllCustomers(),
           orderId ? getOrders({ take: 200, sortField: "createdAt", sortDirection: "desc" }) : Promise.resolve({ data: [], total: 0 }),
         ]);
         setCustomers(custRes.data || []);

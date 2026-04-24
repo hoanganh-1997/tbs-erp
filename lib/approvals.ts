@@ -1,6 +1,7 @@
 "use server";
 import { getRecords, getRecord, createRecord, updateRecord, deleteRecord, deleteRecords } from "@/lib/inforact-sdk";
 import type { ListRecordsOptions, CreateTableField } from "@/lib/inforact-sdk";
+import { listRecords, searchRecords, type ComplexFilter } from "@/lib/inforact-sdk-ext";
 import { ensureTable } from "@/lib/table-registry";
 
 const TABLE_NAME = 'Approvals';
@@ -18,6 +19,9 @@ const TABLE_FIELDS: CreateTableField[] = [
   { name: 'ReferenceCode', type: 'TEXT' },
   { name: 'RequestedBy', type: 'TEXT' },
   { name: 'CurrentApprover', type: 'TEXT' },
+  { name: 'CurrentApproverTitle', type: 'SINGLE_OPTION', options: [
+    { name: 'LEADER' }, { name: 'VICE_LEADER' }, { name: 'MEMBER' }
+  ]},
   { name: 'ApprovalChain', type: 'TEXT' },
   { name: 'CurrentStep', type: 'NUMBER' },
   { name: 'TotalSteps', type: 'NUMBER' },
@@ -29,6 +33,9 @@ const TABLE_FIELDS: CreateTableField[] = [
   { name: 'SLADeadline', type: 'DATE' },
   { name: 'IsOverdue', type: 'CHECKBOX' },
   { name: 'EscalatedTo', type: 'TEXT' },
+  { name: 'EscalatedToTitle', type: 'SINGLE_OPTION', options: [
+    { name: 'LEADER' }, { name: 'VICE_LEADER' }, { name: 'MEMBER' }
+  ]},
   { name: 'Decision', type: 'SINGLE_OPTION', options: [
     { name: 'Chấp nhận' }, { name: 'Từ chối' }
   ]},
@@ -53,6 +60,7 @@ export interface Approval {
   ReferenceCode?: string;
   RequestedBy?: string;
   CurrentApprover?: string;
+  CurrentApproverTitle?: 'LEADER' | 'VICE_LEADER' | 'MEMBER';
   ApprovalChain?: string;
   CurrentStep?: number;
   TotalSteps?: number;
@@ -61,6 +69,7 @@ export interface Approval {
   SLADeadline?: string;
   IsOverdue?: boolean;
   EscalatedTo?: string;
+  EscalatedToTitle?: 'LEADER' | 'VICE_LEADER' | 'MEMBER' | null;
   Decision?: string;
   DecisionNote?: string;
   DecidedAt?: string;
@@ -80,6 +89,31 @@ function mapRecord(record: any): Approval {
 export async function getApprovals(options?: ListRecordsOptions): Promise<{ data: Approval[]; total: number }> {
   const tableId = await getTableId();
   const result = await getRecords(tableId, options);
+  return { data: result.records.map(mapRecord), total: result.total };
+}
+
+export interface ListApprovalsOptions {
+  filters?: ComplexFilter;
+  sort?: { field: string; direction: 'asc' | 'desc' }[];
+  skip?: number;
+  take?: number;
+}
+
+export async function listApprovals(options: ListApprovalsOptions = {}): Promise<{ data: Approval[]; total: number }> {
+  const tableId = await getTableId();
+  const result = await listRecords(tableId, options);
+  return { data: result.records.map(mapRecord), total: result.total };
+}
+
+export async function searchApprovals(query: string, filters?: ComplexFilter, extra?: { skip?: number; take?: number }): Promise<{ data: Approval[]; total: number }> {
+  const tableId = await getTableId();
+  const result = await searchRecords(tableId, {
+    query,
+    fields: ['ApprovalCode', 'ReferenceCode', 'CurrentApprover', 'Summary'],
+    filters,
+    skip: extra?.skip,
+    take: extra?.take,
+  });
   return { data: result.records.map(mapRecord), total: result.total };
 }
 

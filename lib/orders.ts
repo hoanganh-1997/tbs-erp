@@ -1,7 +1,9 @@
 "use server";
 import { getRecords, getRecord, createRecord, updateRecord, deleteRecord, deleteRecords } from "@/lib/inforact-sdk";
 import type { ListRecordsOptions, CreateTableField } from "@/lib/inforact-sdk";
+import { listRecords, searchRecords, type ComplexFilter } from "@/lib/inforact-sdk-ext";
 import { ensureTable } from "@/lib/table-registry";
+import { COMMISSION_RATE } from "@/lib/constants";
 
 const TABLE_NAME = 'Orders';
 const TABLE_FIELDS: CreateTableField[] = [
@@ -116,19 +118,85 @@ export async function getOrders(options?: ListRecordsOptions): Promise<{ data: O
   return { data: result.records.map(mapRecord), total: result.total };
 }
 
+export interface ListOrdersOptions {
+  filters?: ComplexFilter;
+  sort?: { field: string; direction: 'asc' | 'desc' }[];
+  skip?: number;
+  take?: number;
+}
+
+export async function listOrders(options: ListOrdersOptions = {}): Promise<{ data: Order[]; total: number }> {
+  const tableId = await getTableId();
+  const result = await listRecords(tableId, options);
+  return { data: result.records.map(mapRecord), total: result.total };
+}
+
+export async function searchOrders(query: string, filters?: ComplexFilter, extra?: { skip?: number; take?: number }): Promise<{ data: Order[]; total: number }> {
+  const tableId = await getTableId();
+  const result = await searchRecords(tableId, {
+    query,
+    fields: ['OrderCode', 'CustomerName', 'CompanyName', 'SaleOwner', 'Notes'],
+    filters,
+    skip: extra?.skip,
+    take: extra?.take,
+  });
+  return { data: result.records.map(mapRecord), total: result.total };
+}
+
 export async function getOrder(id: string): Promise<Order> {
   const tableId = await getTableId();
   return mapRecord(await getRecord(tableId, id));
 }
 
+const PROFIT_INPUT_FIELDS = [
+  'TotalVND',
+  'ItemsTotalCNY',
+  'ExchangeRate',
+  'ServiceFeeVND',
+  'ShippingFeeVND',
+  'TaxVND',
+] as const;
+
+function num(v: unknown): number {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function computeDerivedFields(fields: Record<string, any>): {
+  ProfitVND: number;
+  ProfitMargin: number;
+  CommissionVND: number;
+} {
+  const totalVND = num(fields.TotalVND);
+  const cogs = num(fields.ItemsTotalCNY) * num(fields.ExchangeRate);
+  const costs = cogs + num(fields.ServiceFeeVND) + num(fields.ShippingFeeVND) + num(fields.TaxVND);
+  const profitVND = totalVND - costs;
+  const commissionVND = Math.max(0, profitVND * COMMISSION_RATE);
+  const profitMargin = totalVND > 0 ? (profitVND / totalVND) * 100 : 0;
+  return {
+    ProfitVND: profitVND,
+    ProfitMargin: profitMargin,
+    CommissionVND: commissionVND,
+  };
+}
+
 export async function createOrder(data: CreateOrderInput): Promise<Order> {
   const tableId = await getTableId();
-  return mapRecord(await createRecord(tableId, data as Record<string, any>));
+  const payload: Record<string, any> = { ...(data as Record<string, any>) };
+  Object.assign(payload, computeDerivedFields(payload));
+  return mapRecord(await createRecord(tableId, payload));
 }
 
 export async function updateOrder(id: string, data: UpdateOrderInput): Promise<void> {
   const tableId = await getTableId();
-  await updateRecord(tableId, id, data as Record<string, any>);
+  const payload: Record<string, any> = { ...(data as Record<string, any>) };
+  const touchesProfitInputs = PROFIT_INPUT_FIELDS.some(f => f in payload);
+  if (touchesProfitInputs) {
+    const current = await getRecord(tableId, id);
+    const merged = { ...current.fields, ...payload };
+    Object.assign(payload, computeDerivedFields(merged));
+  }
+  await updateRecord(tableId, id, payload);
 }
 
 export async function deleteOrder(id: string): Promise<void> {

@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { getApprovals, updateApproval } from "@/lib/approvals";
+import { listApprovals } from "@/lib/approvals";
 import type { Approval } from "@/lib/approvals";
+import { getCurrentUser, decideApproval, listGroups, type CurrentUser, type GroupMember } from "@/lib/inforact-sdk-ext";
 import { cn, formatDate, formatCurrency } from "@/lib/utils";
-import { StatusBadge } from "@/components/status-badge";
 import { PageHeader } from "@/components/page-header";
-import { Search, X, ChevronLeft, ChevronRight, Clock, AlertTriangle, CheckCircle, XCircle, ShieldCheck } from "lucide-react";
+import { Search, X, ChevronLeft, ChevronRight, Clock, AlertTriangle, CheckCircle, XCircle, ShieldCheck, Lock } from "lucide-react";
 import { toast } from "sonner";
 
 const STATUS_TABS = ["Chờ duyệt", "Đã duyệt", "Từ chối"] as const;
@@ -112,9 +112,25 @@ function DecisionDialog({ open, type, onClose, onConfirm }: { open: boolean; typ
   );
 }
 
-function ApprovalCard({ approval, onApprove, onReject }: { approval: Approval; onApprove: () => void; onReject: () => void }) {
+function canDecide(
+  approval: Approval,
+  user: CurrentUser | null,
+  groupMembers: Map<string, GroupMember[]>,
+): boolean {
+  if (!user) return false;
+  if (approval.Status !== "Chờ duyệt" && approval.Status !== "Đã leo thang") return false;
+  const groupId = approval.CurrentApprover;
+  const requiredTitle = approval.CurrentApproverTitle;
+  if (!groupId || !requiredTitle) return false;
+  const members = groupMembers.get(groupId);
+  if (!members) return false;
+  return members.some((m) => m.userId === user.id && m.title === requiredTitle);
+}
+
+function ApprovalCard({ approval, currentUser, groupMembers, onApprove, onReject }: { approval: Approval; currentUser: CurrentUser | null; groupMembers: Map<string, GroupMember[]>; onApprove: () => void; onReject: () => void }) {
   const isOverdue = approval.SLADeadline && new Date(approval.SLADeadline) < new Date();
   const isPending = approval.Status === "Chờ duyệt";
+  const canAct = canDecide(approval, currentUser, groupMembers);
 
   return (
     <div className={cn("border rounded-xl p-5 bg-white hover:shadow-md transition-shadow", isOverdue && isPending && "border-red-200")}>
@@ -172,8 +188,8 @@ function ApprovalCard({ approval, onApprove, onReject }: { approval: Approval; o
           )}
         </div>
 
-        {/* Action buttons */}
-        {isPending && (
+        {/* Action buttons — gated by current approver */}
+        {isPending && canAct && (
           <div className="flex flex-col gap-2 flex-shrink-0">
             <button
               onClick={onApprove}
@@ -191,6 +207,12 @@ function ApprovalCard({ approval, onApprove, onReject }: { approval: Approval; o
             </button>
           </div>
         )}
+        {isPending && !canAct && currentUser && (
+          <div className="flex items-center gap-1.5 text-xs text-gray-400 flex-shrink-0" title="Bạn không phải người duyệt bước này">
+            <Lock className="w-3.5 h-3.5" />
+            Chờ {approval.CurrentApproverTitle ?? ""} {approval.CurrentApprover}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -198,6 +220,8 @@ function ApprovalCard({ approval, onApprove, onReject }: { approval: Approval; o
 
 export default function ApprovalsPage() {
   const [data, setData] = useState<Approval[]>([]);
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  const [groupMembers, setGroupMembers] = useState<Map<string, GroupMember[]>>(new Map());
   const [loading, setLoading] = useState(true);
   const [statusTab, setStatusTab] = useState<string>("Chờ duyệt");
   const [search, setSearch] = useState("");
@@ -205,13 +229,28 @@ export default function ApprovalsPage() {
   const [dialog, setDialog] = useState<{ open: boolean; type: "approve" | "reject"; approvalId: string }>({ open: false, type: "approve", approvalId: "" });
 
   useEffect(() => {
+    let cancelled = false;
     loadData();
+    getCurrentUser()
+      .then((u) => !cancelled && setCurrentUser(u))
+      .catch(() => !cancelled && setCurrentUser(null));
+    listGroups()
+      .then((groups) => {
+        if (cancelled) return;
+        const map = new Map<string, GroupMember[]>();
+        for (const g of groups) map.set(g.id, g.members);
+        setGroupMembers(map);
+      })
+      .catch(() => !cancelled && setGroupMembers(new Map()));
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   async function loadData() {
     setLoading(true);
     try {
-      const { data: approvals } = await getApprovals({ take: 200, sortField: "createdAt", sortDirection: "desc" });
+      const { data: approvals } = await listApprovals({ take: 200, sort: [{ field: "createdAt", direction: "desc" }] });
       setData(approvals);
     } catch {
       toast.error("Lỗi tải dữ liệu phê duyệt");
@@ -248,36 +287,22 @@ export default function ApprovalsPage() {
     const approval = data.find(a => a.id === approvalId);
     if (!approval) return;
 
+    if (!canDecide(approval, currentUser, groupMembers)) {
+      toast.error("Bạn không có quyền duyệt bước này");
+      return;
+    }
+
     try {
-      if (type === "approve") {
-        const isLastStep = (approval.CurrentStep || 1) >= (approval.TotalSteps || 1);
-        if (isLastStep) {
-          await updateApproval(approvalId, {
-            Status: "Đã duyệt",
-            Decision: "Chấp nhận",
-            DecisionNote: note || undefined,
-            DecidedAt: new Date().toISOString(),
-          });
-        } else {
-          await updateApproval(approvalId, {
-            CurrentStep: (approval.CurrentStep || 1) + 1,
-            DecisionNote: note || undefined,
-          });
-        }
-        toast.success(isLastStep ? "Đã phê duyệt hoàn tất" : "Đã duyệt, chuyển bước tiếp theo");
-      } else {
-        await updateApproval(approvalId, {
-          Status: "Từ chối",
-          Decision: "Từ chối",
-          DecisionNote: note || undefined,
-          DecidedAt: new Date().toISOString(),
-        });
-        toast.success("Đã từ chối yêu cầu");
-      }
+      await decideApproval(approvalId, type, note || undefined);
+      toast.success(
+        type === "approve"
+          ? "Đã duyệt — chuyển bước tiếp theo hoặc hoàn tất"
+          : "Đã từ chối yêu cầu"
+      );
       setDialog({ open: false, type: "approve", approvalId: "" });
       await loadData();
-    } catch {
-      toast.error("Lỗi xử lý phê duyệt");
+    } catch (err: any) {
+      toast.error(`Lỗi xử lý phê duyệt: ${err?.message ?? "unknown"}`);
     }
   };
 
@@ -329,6 +354,8 @@ export default function ApprovalsPage() {
             <ApprovalCard
               key={approval.id}
               approval={approval}
+              currentUser={currentUser}
+              groupMembers={groupMembers}
               onApprove={() => setDialog({ open: true, type: "approve", approvalId: approval.id })}
               onReject={() => setDialog({ open: true, type: "reject", approvalId: approval.id })}
             />

@@ -1,6 +1,7 @@
 "use server";
 import { getRecords, getRecord, createRecord, updateRecord, deleteRecord, deleteRecords } from "@/lib/inforact-sdk";
 import type { ListRecordsOptions, CreateTableField } from "@/lib/inforact-sdk";
+import { listRecords, searchRecords, type ComplexFilter } from "@/lib/inforact-sdk-ext";
 import { ensureTable } from "@/lib/table-registry";
 
 const TABLE_NAME = 'Customers';
@@ -74,6 +75,58 @@ function mapRecord(record: any): Customer {
 export async function getCustomers(options?: ListRecordsOptions): Promise<{ data: Customer[]; total: number }> {
   const tableId = await getTableId();
   const result = await getRecords(tableId, options);
+  return { data: result.records.map(mapRecord), total: result.total };
+}
+
+/**
+ * Fetch all customers by paginating through the SDK (200/page).
+ * Safe for form pickers because the Customers table is not huge.
+ * Falls back to the provided hardCap (default 5000) to avoid runaway loops.
+ */
+export async function getAllCustomers(hardCap = 5000): Promise<{ data: Customer[]; total: number }> {
+  const tableId = await getTableId();
+  const pageSize = 200;
+  const all: Customer[] = [];
+  let skip = 0;
+  let total = 0;
+  while (all.length < hardCap) {
+    const result = await getRecords(tableId, {
+      take: pageSize,
+      skip,
+      sortField: "createdAt",
+      sortDirection: "desc",
+    });
+    total = result.total;
+    all.push(...result.records.map(mapRecord));
+    if (result.records.length < pageSize) break;
+    if (all.length >= total) break;
+    skip += pageSize;
+  }
+  return { data: all, total };
+}
+
+export interface ListCustomersOptions {
+  filters?: ComplexFilter;
+  sort?: { field: string; direction: 'asc' | 'desc' }[];
+  skip?: number;
+  take?: number;
+}
+
+export async function listCustomers(options: ListCustomersOptions = {}): Promise<{ data: Customer[]; total: number }> {
+  const tableId = await getTableId();
+  const result = await listRecords(tableId, options);
+  return { data: result.records.map(mapRecord), total: result.total };
+}
+
+export async function searchCustomers(query: string, filters?: ComplexFilter, extra?: { skip?: number; take?: number }): Promise<{ data: Customer[]; total: number }> {
+  const tableId = await getTableId();
+  const result = await searchRecords(tableId, {
+    query,
+    fields: ['CustomerCode', 'CompanyName', 'ContactName', 'Phone', 'Email', 'TaxCode'],
+    filters,
+    skip: extra?.skip,
+    take: extra?.take,
+  });
   return { data: result.records.map(mapRecord), total: result.total };
 }
 

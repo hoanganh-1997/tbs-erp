@@ -8,6 +8,24 @@
 const API_BASE = process.env.INFORACT_API_URL || '';
 const APP_TOKEN = process.env.INFORACT_APP_TOKEN || '';
 
+/**
+ * Resolve JWT for the current request. Priority:
+ *   1. `localStorage.access_token` (set after user login)
+ *   2. `NEXT_PUBLIC_DEV_JWT` (local dev fallback)
+ */
+function getJWT(): string | null {
+  if (typeof window !== 'undefined') {
+    const stored = window.localStorage.getItem('access_token');
+    if (stored) return stored;
+  }
+  return process.env.NEXT_PUBLIC_DEV_JWT || null;
+}
+
+function authHeader(): { [k: string]: string } {
+  const jwt = getJWT();
+  return jwt ? { Authorization: `Bearer ${jwt}` } : {};
+}
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -217,6 +235,7 @@ async function request<T = any>(
       cache: 'no-store',
       headers: {
         'Content-Type': 'application/json',
+        ...authHeader(),
         ...options?.headers,
       },
     });
@@ -255,6 +274,65 @@ async function request<T = any>(
 }
 
 // ---------------------------------------------------------------------------
+// Schema cache + option-value validation
+// ---------------------------------------------------------------------------
+
+const _schemaCache = new Map<string, TableSchema>();
+
+async function getCachedSchema(tableId: string): Promise<TableSchema> {
+  const cached = _schemaCache.get(tableId);
+  if (cached) return cached;
+  const fresh = await request<TableSchema>(
+    `/tables/${tableId}`,
+    undefined,
+    `fetching schema for table ${tableId}`,
+  );
+  _schemaCache.set(tableId, fresh);
+  return fresh;
+}
+
+async function validateOptionFields(
+  tableId: string,
+  fields: { [fieldName: string]: any },
+  context: string,
+): Promise<void> {
+  let schema: TableSchema;
+  try {
+    schema = await getCachedSchema(tableId);
+  } catch {
+    return;
+  }
+  const byName = new Map(schema.fields.map(f => [f.name, f]));
+  for (const [key, value] of Object.entries(fields)) {
+    if (value === null || value === undefined || value === '') continue;
+    const field = byName.get(key);
+    if (!field) continue;
+    if (!field.options || field.options.length === 0) continue;
+    const allowedNames = field.options.map(o => o.name);
+    if (field.type === 'SINGLE_OPTION') {
+      if (typeof value !== 'string') continue;
+      if (allowedNames.indexOf(value) === -1) {
+        throw new InforactError(
+          `Invalid value "${value}" for SINGLE_OPTION field "${key}" (${context}). Allowed: ${allowedNames.join(', ')}`,
+          422,
+          'INVALID_OPTION_VALUE',
+        );
+      }
+    } else if (field.type === 'MULTIPLE_OPTIONS') {
+      if (!Array.isArray(value)) continue;
+      const bad = value.filter(v => typeof v === 'string' && allowedNames.indexOf(v) === -1);
+      if (bad.length > 0) {
+        throw new InforactError(
+          `Invalid value(s) [${bad.join(', ')}] for MULTIPLE_OPTIONS field "${key}" (${context}). Allowed: ${allowedNames.join(', ')}`,
+          422,
+          'INVALID_OPTION_VALUE',
+        );
+      }
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
 
@@ -287,7 +365,7 @@ export async function getTables(): Promise<TableSchema[]> {
  * ```
  */
 export async function getTableSchema(tableId: string): Promise<TableSchema> {
-  return request<TableSchema>(`/tables/${tableId}`, undefined, `fetching schema for table ${tableId}`);
+  return getCachedSchema(tableId);
 }
 
 /**
@@ -405,6 +483,7 @@ export async function createRecord(
   tableId: string,
   fields: { [fieldName: string]: any },
 ): Promise<Record> {
+  await validateOptionFields(tableId, fields, `creating record in table ${tableId}`);
   return request<Record>(
     `/tables/${tableId}/rows`,
     { method: 'POST', body: JSON.stringify({ fields }) },
@@ -431,6 +510,7 @@ export async function updateRecord(
   recordId: string,
   fields: { [fieldName: string]: any },
 ): Promise<void> {
+  await validateOptionFields(tableId, fields, `updating record ${recordId} in table ${tableId}`);
   await request(
     `/tables/${tableId}/rows/${recordId}`,
     { method: 'PATCH', body: JSON.stringify({ fields }) },

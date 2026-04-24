@@ -1,6 +1,7 @@
 "use server";
 import { getRecords, getRecord, createRecord, updateRecord, deleteRecord, deleteRecords } from "@/lib/inforact-sdk";
 import type { ListRecordsOptions, CreateTableField } from "@/lib/inforact-sdk";
+import { listRecords, searchRecords, type ComplexFilter } from "@/lib/inforact-sdk-ext";
 import { ensureTable } from "@/lib/table-registry";
 
 const TABLE_NAME = 'Containers';
@@ -80,6 +81,31 @@ function mapRecord(record: any): Container {
 export async function getContainers(options?: ListRecordsOptions): Promise<{ data: Container[]; total: number }> {
   const tableId = await getTableId();
   const result = await getRecords(tableId, options);
+  return { data: result.records.map(mapRecord), total: result.total };
+}
+
+export interface ListContainersOptions {
+  filters?: ComplexFilter;
+  sort?: { field: string; direction: 'asc' | 'desc' }[];
+  skip?: number;
+  take?: number;
+}
+
+export async function listContainers(options: ListContainersOptions = {}): Promise<{ data: Container[]; total: number }> {
+  const tableId = await getTableId();
+  const result = await listRecords(tableId, options);
+  return { data: result.records.map(mapRecord), total: result.total };
+}
+
+export async function searchContainers(query: string, filters?: ComplexFilter, extra?: { skip?: number; take?: number }): Promise<{ data: Container[]; total: number }> {
+  const tableId = await getTableId();
+  const result = await searchRecords(tableId, {
+    query,
+    fields: ['ContainerCode', 'ContainerNumber', 'Route', 'Notes'],
+    filters,
+    skip: extra?.skip,
+    take: extra?.take,
+  });
   return { data: result.records.map(mapRecord), total: result.total };
 }
 

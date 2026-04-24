@@ -46,11 +46,21 @@ export default function ExchangeRatesPage() {
 
   const handleSave = async () => {
     if (!cnyRate && !usdRate) { toast.error("Vui lòng nhập tỷ giá"); return; }
+    const cnyNum = cnyRate ? Number(cnyRate) : null;
+    const usdNum = usdRate ? Number(usdRate) : null;
+    if (cnyNum !== null && (!Number.isFinite(cnyNum) || cnyNum <= 0)) {
+      toast.error("Tỷ giá CNY phải là số dương");
+      return;
+    }
+    if (usdNum !== null && (!Number.isFinite(usdNum) || usdNum <= 0)) {
+      toast.error("Tỷ giá USD phải là số dương");
+      return;
+    }
     setSaving(true);
     try {
       const today = new Date().toISOString();
-      if (cnyRate) await createExchangeRate({ Date: today, FromCurrency: "CNY", ToCurrency: "VND", Rate: Number(cnyRate), SetBy: "Admin" });
-      if (usdRate) await createExchangeRate({ Date: today, FromCurrency: "USD", ToCurrency: "VND", Rate: Number(usdRate), SetBy: "Admin" });
+      if (cnyNum !== null) await createExchangeRate({ Date: today, FromCurrency: "CNY", ToCurrency: "VND", Rate: cnyNum, SetBy: "Admin" });
+      if (usdNum !== null) await createExchangeRate({ Date: today, FromCurrency: "USD", ToCurrency: "VND", Rate: usdNum, SetBy: "Admin" });
       toast.success("Cập nhật tỷ giá thành công");
       setCnyRate("");
       setUsdRate("");
@@ -71,14 +81,14 @@ export default function ExchangeRatesPage() {
         <div className="bg-blue-50 rounded-xl p-5 border border-blue-100">
           <p className="text-xs text-blue-600 font-medium">CNY → VND</p>
           <p className="text-3xl font-bold text-[#2D3A8C] mt-1">
-            {latestCny?.Rate ? new Intl.NumberFormat("vi-VN").format(latestCny.Rate) : "---"}
+            {latestCny?.Rate && latestCny.Rate > 0 ? new Intl.NumberFormat("vi-VN").format(latestCny.Rate) : "---"}
           </p>
           {latestCny?.Date && <p className="text-xs text-gray-500 mt-2">Cập nhật: {formatDate(latestCny.Date)}</p>}
         </div>
         <div className="bg-green-50 rounded-xl p-5 border border-green-100">
           <p className="text-xs text-green-600 font-medium">USD → VND</p>
           <p className="text-3xl font-bold text-[#2D3A8C] mt-1">
-            {latestUsd?.Rate ? new Intl.NumberFormat("vi-VN").format(latestUsd.Rate) : "---"}
+            {latestUsd?.Rate && latestUsd.Rate > 0 ? new Intl.NumberFormat("vi-VN").format(latestUsd.Rate) : "---"}
           </p>
           {latestUsd?.Date && <p className="text-xs text-gray-500 mt-2">Cập nhật: {formatDate(latestUsd.Date)}</p>}
         </div>
@@ -92,6 +102,8 @@ export default function ExchangeRatesPage() {
             <label className="block text-xs text-gray-500 mb-1">CNY → VND</label>
             <input
               type="number"
+              min="0.0001"
+              step="any"
               value={cnyRate}
               onChange={(e) => setCnyRate(e.target.value)}
               placeholder="VD: 3500"
@@ -102,6 +114,8 @@ export default function ExchangeRatesPage() {
             <label className="block text-xs text-gray-500 mb-1">USD → VND</label>
             <input
               type="number"
+              min="0.0001"
+              step="any"
               value={usdRate}
               onChange={(e) => setUsdRate(e.target.value)}
               placeholder="VD: 24500"
@@ -155,7 +169,7 @@ export default function ExchangeRatesPage() {
                       <span className="inline-flex items-center px-2 py-0.5 rounded bg-green-50 text-green-700 text-xs font-medium">{r.ToCurrency}</span>
                     </td>
                     <td className="px-4 py-3 text-right font-bold text-gray-900">
-                      {r.Rate ? new Intl.NumberFormat("vi-VN").format(r.Rate) : "---"}
+                      {r.Rate && r.Rate > 0 ? new Intl.NumberFormat("vi-VN").format(r.Rate) : "---"}
                     </td>
                     <td className="px-4 py-3 text-gray-600">{r.SetBy || "---"}</td>
                   </tr>

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createOrder } from "@/lib/orders";
-import { getCustomers, type Customer } from "@/lib/customers";
+import { getAllCustomers, type Customer } from "@/lib/customers";
 import { generateCode } from "@/lib/utils";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -39,7 +39,7 @@ export default function CreateOrderPage() {
   useEffect(() => {
     async function loadCustomers() {
       try {
-        const { data } = await getCustomers({ take: 200, sortField: "createdAt", sortDirection: "desc" });
+        const { data } = await getAllCustomers();
         setCustomers(data);
       } catch {
         toast.error("Không thể tải danh sách khách hàng");

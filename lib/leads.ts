@@ -1,6 +1,7 @@
 "use server";
 import { getRecords, getRecord, createRecord, updateRecord, deleteRecord, deleteRecords } from "@/lib/inforact-sdk";
 import type { ListRecordsOptions, CreateTableField } from "@/lib/inforact-sdk";
+import { listRecords, searchRecords, type ComplexFilter } from "@/lib/inforact-sdk-ext";
 import { ensureTable } from "@/lib/table-registry";
 
 const TABLE_NAME = 'Leads';
@@ -66,6 +67,31 @@ function mapRecord(record: any): Lead {
 export async function getLeads(options?: ListRecordsOptions): Promise<{ data: Lead[]; total: number }> {
   const tableId = await getTableId();
   const result = await getRecords(tableId, options);
+  return { data: result.records.map(mapRecord), total: result.total };
+}
+
+export interface ListLeadsOptions {
+  filters?: ComplexFilter;
+  sort?: { field: string; direction: 'asc' | 'desc' }[];
+  skip?: number;
+  take?: number;
+}
+
+export async function listLeads(options: ListLeadsOptions = {}): Promise<{ data: Lead[]; total: number }> {
+  const tableId = await getTableId();
+  const result = await listRecords(tableId, options);
+  return { data: result.records.map(mapRecord), total: result.total };
+}
+
+export async function searchLeads(query: string, filters?: ComplexFilter, extra?: { skip?: number; take?: number }): Promise<{ data: Lead[]; total: number }> {
+  const tableId = await getTableId();
+  const result = await searchRecords(tableId, {
+    query,
+    fields: ['LeadCode', 'CompanyName', 'ContactName', 'Phone', 'Email'],
+    filters,
+    skip: extra?.skip,
+    take: extra?.take,
+  });
   return { data: result.records.map(mapRecord), total: result.total };
 }
 

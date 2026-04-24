@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import Link from "next/link";
 import { Search, Filter, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
-import { getCustomers, createCustomer, type Customer } from "@/lib/customers";
+import { listCustomers, createCustomer, type Customer } from "@/lib/customers";
 import { cn, formatCurrency, formatDate, generateCode } from "@/lib/utils";
 import { TierBadge } from "@/components/status-badge";
 import { PageHeader } from "@/components/page-header";
@@ -233,10 +233,9 @@ export default function CustomersPage() {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await getCustomers({
+      const { data } = await listCustomers({
         take: 200,
-        sortField: "createdAt",
-        sortDirection: "desc",
+        sort: [{ field: "createdAt", direction: "desc" }],
       });
       setCustomers(data);
     } catch {

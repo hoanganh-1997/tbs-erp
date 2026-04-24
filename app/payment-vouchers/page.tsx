@@ -6,7 +6,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { toast } from "sonner";
-import { getPaymentVouchers } from "@/lib/payment-vouchers";
+import { listPaymentVouchers } from "@/lib/payment-vouchers";
 import type { PaymentVoucher } from "@/lib/payment-vouchers";
 import { FileText, Flag, AlertTriangle } from "lucide-react";
 
@@ -22,7 +22,7 @@ function TypeBadge({ type }: { type: string | undefined }) {
       "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium",
       isThu ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
     )}>
-      {type === "Phiếu thu" ? "Thu" : "Chi"}
+      {type}
     </span>
   );
 }
@@ -64,7 +64,7 @@ export default function PaymentVouchersPage() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await getPaymentVouchers({ take: 200, sortField: "createdAt", sortDirection: "desc" });
+      const res = await listPaymentVouchers({ take: 200, sort: [{ field: "createdAt", direction: "desc" }] });
       setData(res.data);
     } catch {
       toast.error("Lỗi tải dữ liệu phiếu thu chi");

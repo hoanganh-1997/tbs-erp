@@ -3,11 +3,12 @@
 import { useEffect, useState, useCallback, useMemo, memo, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { createQuotation } from "@/lib/quotations";
+import { createQuotation, updateQuotation } from "@/lib/quotations";
 import { createQuotationItem } from "@/lib/quotation-items";
-import { getCustomers } from "@/lib/customers";
+import { getAllCustomers } from "@/lib/customers";
 import { getLead, updateLead } from "@/lib/leads";
 import { getExchangeRates } from "@/lib/exchange-rates";
+import { createApprovalRequest, type ApprovalStep } from "@/lib/inforact-sdk-ext";
 import { generateCode, formatCurrency } from "@/lib/utils";
 import { PageHeader } from "@/components/page-header";
 import { toast } from "sonner";
@@ -59,32 +60,34 @@ const LineItemForm = memo(function LineItemForm({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div>
           <label className="block text-xs text-gray-500 mb-1">Tên sản phẩm *</label>
-          <input type="text" defaultValue={item.ProductName} onBlur={(e) => onUpdate(item.id, "ProductName", e.target.value)}
+          <input type="text" value={item.ProductName} onChange={(e) => onUpdate(item.id, "ProductName", e.target.value)}
             placeholder="Nhập tên sản phẩm" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#4F5FD9]/40 focus:border-[#4F5FD9]" />
         </div>
         <div>
           <label className="block text-xs text-gray-500 mb-1">SKU</label>
-          <input type="text" defaultValue={item.SKU} onBlur={(e) => onUpdate(item.id, "SKU", e.target.value)}
+          <input type="text" value={item.SKU} onChange={(e) => onUpdate(item.id, "SKU", e.target.value)}
             placeholder="Mã sản phẩm" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#4F5FD9]/40 focus:border-[#4F5FD9]" />
         </div>
         <div>
           <label className="block text-xs text-gray-500 mb-1">Link sản phẩm</label>
-          <input type="text" defaultValue={item.ProductLink} onBlur={(e) => onUpdate(item.id, "ProductLink", e.target.value)}
+          <input type="text" value={item.ProductLink} onChange={(e) => onUpdate(item.id, "ProductLink", e.target.value)}
             placeholder="https://..." className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#4F5FD9]/40 focus:border-[#4F5FD9]" />
         </div>
         <div>
           <label className="block text-xs text-gray-500 mb-1">Thuộc tính</label>
-          <input type="text" defaultValue={item.Attributes} onBlur={(e) => onUpdate(item.id, "Attributes", e.target.value)}
+          <input type="text" value={item.Attributes} onChange={(e) => onUpdate(item.id, "Attributes", e.target.value)}
             placeholder="Màu, size..." className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#4F5FD9]/40 focus:border-[#4F5FD9]" />
         </div>
         <div>
           <label className="block text-xs text-gray-500 mb-1">Số lượng</label>
-          <input type="number" min={1} defaultValue={item.Quantity} onBlur={(e) => onUpdate(item.id, "Quantity", Number(e.target.value) || 1)}
+          <input type="number" min={1} step="any" value={item.Quantity}
+            onChange={(e) => onUpdate(item.id, "Quantity", e.target.value === "" ? 0 : Number(e.target.value))}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#4F5FD9]/40 focus:border-[#4F5FD9]" />
         </div>
         <div>
           <label className="block text-xs text-gray-500 mb-1">Đơn giá (CNY)</label>
-          <input type="number" min={0} defaultValue={item.UnitPriceCNY} onBlur={(e) => onUpdate(item.id, "UnitPriceCNY", Number(e.target.value) || 0)}
+          <input type="number" min={0} step="any" value={item.UnitPriceCNY}
+            onChange={(e) => onUpdate(item.id, "UnitPriceCNY", e.target.value === "" ? 0 : Number(e.target.value))}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#4F5FD9]/40 focus:border-[#4F5FD9]" />
         </div>
       </div>
@@ -95,12 +98,45 @@ const LineItemForm = memo(function LineItemForm({
   );
 });
 
+// GAP-SDK-006 v1.2 schema. BGĐ chưa có trong mapping table Inforact cấp —
+// tạm map `grp_bgd` + LEADER, cần Lead/Inforact confirm trước khi chạy thật.
+const STEP = {
+  leaderKD:   { type: "group", groupId: "grp_kinh_doanh", title: "VICE_LEADER" } as ApprovalStep,
+  gdKD:       { type: "group", groupId: "grp_kinh_doanh", title: "LEADER" }      as ApprovalStep,
+  ktTT:       { type: "group", groupId: "grp_ke_toan",    title: "VICE_LEADER" } as ApprovalStep,
+  bgd:        { type: "group", groupId: "grp_bgd",        title: "LEADER" }      as ApprovalStep,
+};
+
+function getApprovalChain(
+  discountPercent: number,
+  totalVND: number,
+): { label: string; chain: ApprovalStep[]; slaHours: number } {
+  if (totalVND > 100_000_000 || discountPercent > 5) {
+    return {
+      label: "Leader + KT TT → GĐ KD → BGĐ",
+      chain: [STEP.leaderKD, STEP.ktTT, STEP.gdKD, STEP.bgd],
+      slaHours: 4,
+    };
+  }
+  if (discountPercent > 3) {
+    return {
+      label: "Leader + KT TT → GĐ KD",
+      chain: [STEP.leaderKD, STEP.ktTT, STEP.gdKD],
+      slaHours: 4,
+    };
+  }
+  if (discountPercent > 0) {
+    return {
+      label: "Leader + KT TT",
+      chain: [STEP.leaderKD, STEP.ktTT],
+      slaHours: 2,
+    };
+  }
+  return { label: "", chain: [], slaHours: 0 };
+}
+
 function getApprovalChainLabel(discountPercent: number, totalVND: number): string {
-  if (totalVND > 100_000_000) return "Leader + KT TT → GĐ KD → BGĐ";
-  if (discountPercent > 5) return "Leader + KT TT → GĐ KD → BGĐ";
-  if (discountPercent > 3) return "Leader + KT TT → GĐ KD";
-  if (discountPercent > 0) return "Leader + KT TT";
-  return "";
+  return getApprovalChain(discountPercent, totalVND).label;
 }
 
 export default function NewQuotationPage() {
@@ -152,7 +188,7 @@ export default function NewQuotationPage() {
       setLoadingCustomers(true);
       try {
         const [custRes, rateRes] = await Promise.all([
-          getCustomers({ take: 200, sortField: "createdAt", sortDirection: "desc" }),
+          getAllCustomers(),
           getExchangeRates({ take: 200, sortField: "createdAt", sortDirection: "desc" }),
         ]);
         setCustomers(custRes.data || []);
@@ -233,6 +269,9 @@ export default function NewQuotationPage() {
     submittingRef.current = true;
     setSubmitting(true);
     try {
+      const approval = getApprovalChain(discountPercent, finalTotal);
+      const initialStatus = approval.chain.length > 0 ? "Chờ duyệt" : "Nháp";
+
       const quotation = await createQuotation({
         QuotationCode: quotationCode,
         Branch: branch,
@@ -249,11 +288,38 @@ export default function NewQuotationPage() {
         DiscountAmount: discountAmount,
         Notes: notes,
         ValidUntil: validUntil || undefined,
-        Status: "Nháp",
+        Status: initialStatus,
         SaleOwner: saleOwner,
       });
 
       const quotationId = quotation?.id || (quotation as any)?.data?.id;
+
+      if (quotationId && approval.chain.length > 0) {
+        try {
+          await createApprovalRequest({
+            referenceType: "quotation",
+            referenceId: quotationId,
+            referenceCode: quotationCode,
+            type: "Giảm giá",
+            approvalChain: approval.chain,
+            slaHours: approval.slaHours,
+            summary: `Báo giá ${quotationCode} — KH ${customerName}, giảm ${discountPercent}%, total ${formatCurrency(finalTotal)}`,
+            amount: finalTotal,
+            metadata: { discountPercent, totalVND: finalTotal, branch },
+          });
+        } catch (err) {
+          console.error("Không tạo được approval request:", err);
+          try {
+            await updateQuotation(quotationId, { Status: "Nháp" });
+          } catch (rollbackErr) {
+            console.error("Rollback quotation status failed:", rollbackErr);
+          }
+          const msg = err instanceof Error ? err.message : "lỗi không xác định";
+          toast.error(
+            `Không tạo được yêu cầu duyệt (${msg}). Báo giá đã lưu ở trạng thái Nháp — mở lại để thử lại.`,
+          );
+        }
+      }
 
       await Promise.all(
         items
@@ -284,7 +350,9 @@ export default function NewQuotationPage() {
       toast.success("Tạo báo giá thành công!");
       router.push(`/quotations/${quotationId}`);
     } catch (err) {
-      toast.error("Lỗi khi tạo báo giá. Vui lòng thử lại.");
+      console.error("Lỗi khi tạo báo giá:", err);
+      const msg = err instanceof Error ? err.message : "lỗi không xác định";
+      toast.error(`Lỗi khi tạo báo giá: ${msg}. Vui lòng thử lại.`);
     } finally {
       submittingRef.current = false;
       setSubmitting(false);

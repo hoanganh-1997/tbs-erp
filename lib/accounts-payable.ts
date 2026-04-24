@@ -1,6 +1,7 @@
 "use server";
 import { getRecords, getRecord, createRecord, updateRecord, deleteRecord, deleteRecords } from "@/lib/inforact-sdk";
 import type { ListRecordsOptions, CreateTableField } from "@/lib/inforact-sdk";
+import { listRecords, searchRecords, type ComplexFilter } from "@/lib/inforact-sdk-ext";
 import { ensureTable } from "@/lib/table-registry";
 
 const TABLE_NAME = 'AccountsPayable';
@@ -59,19 +60,62 @@ export async function getAccountsPayable(options?: ListRecordsOptions): Promise<
   return { data: result.records.map(mapRecord), total: result.total };
 }
 
+export interface ListAccountsPayableOptions {
+  filters?: ComplexFilter;
+  sort?: { field: string; direction: 'asc' | 'desc' }[];
+  skip?: number;
+  take?: number;
+}
+
+export async function listAccountsPayable(options: ListAccountsPayableOptions = {}): Promise<{ data: AccountPayable[]; total: number }> {
+  const tableId = await getTableId();
+  const result = await listRecords(tableId, options);
+  return { data: result.records.map(mapRecord), total: result.total };
+}
+
+export async function searchAccountsPayable(query: string, filters?: ComplexFilter, extra?: { skip?: number; take?: number }): Promise<{ data: AccountPayable[]; total: number }> {
+  const tableId = await getTableId();
+  const result = await searchRecords(tableId, {
+    query,
+    fields: ['BillCode', 'SupplierName', 'Notes'],
+    filters,
+    skip: extra?.skip,
+    take: extra?.take,
+  });
+  return { data: result.records.map(mapRecord), total: result.total };
+}
+
 export async function getAccountPayable(id: string): Promise<AccountPayable> {
   const tableId = await getTableId();
   return mapRecord(await getRecord(tableId, id));
 }
 
+function computeRemaining(invoice: unknown, paid: unknown): number | undefined {
+  const inv = Number(invoice);
+  const pd = Number(paid);
+  if (!Number.isFinite(inv) || !Number.isFinite(pd)) return undefined;
+  return inv - pd;
+}
+
 export async function createAccountPayable(data: CreateAccountPayableInput): Promise<AccountPayable> {
   const tableId = await getTableId();
-  return mapRecord(await createRecord(tableId, data as Record<string, any>));
+  const payload: Record<string, any> = { ...(data as Record<string, any>) };
+  const remaining = computeRemaining(payload.InvoiceAmount, payload.PaidAmount);
+  if (remaining !== undefined) payload.Remaining = remaining;
+  return mapRecord(await createRecord(tableId, payload));
 }
 
 export async function updateAccountPayable(id: string, data: UpdateAccountPayableInput): Promise<void> {
   const tableId = await getTableId();
-  await updateRecord(tableId, id, data as Record<string, any>);
+  const payload: Record<string, any> = { ...(data as Record<string, any>) };
+  const touchesAmount = 'InvoiceAmount' in payload || 'PaidAmount' in payload;
+  if (touchesAmount) {
+    const current = await getRecord(tableId, id);
+    const merged = { ...current.fields, ...payload };
+    const remaining = computeRemaining(merged.InvoiceAmount, merged.PaidAmount);
+    if (remaining !== undefined) payload.Remaining = remaining;
+  }
+  await updateRecord(tableId, id, payload);
 }
 
 export async function deleteAccountPayable(id: string): Promise<void> {

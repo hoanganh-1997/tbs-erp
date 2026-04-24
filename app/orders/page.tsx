@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { getOrders, type Order } from "@/lib/orders";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { toast } from "sonner";
+import { listOrders, type Order } from "@/lib/orders";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { StatusBadge } from "@/components/status-badge";
 import { PageHeader } from "@/components/page-header";
-import { Search, ChevronDown, Eye, Tag, Printer, Filter } from "lucide-react";
+import { Search, ChevronDown, Eye, Tag, Printer, Filter, AlertTriangle, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -108,6 +109,7 @@ export default function OrdersPage() {
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState(0);
   const [search, setSearch] = useState("");
   const [branchFilter, setBranchFilter] = useState("");
@@ -115,24 +117,28 @@ export default function OrdersPage() {
   const [page, setPage] = useState(1);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    async function load() {
-      try {
-        setLoading(true);
-        const { data } = await getOrders({
-          take: 200,
-          sortField: "createdAt",
-          sortDirection: "desc",
-        });
-        setOrders(data);
-      } catch (err) {
-        console.error("Failed to load orders:", err);
-      } finally {
-        setLoading(false);
-      }
+  const load = useCallback(async () => {
+    try {
+      setLoading(true);
+      setLoadError(null);
+      const { data } = await listOrders({
+        take: 200,
+        sort: [{ field: "createdAt", direction: "desc" }],
+      });
+      setOrders(data);
+    } catch (err: any) {
+      const msg = err?.message || "Không rõ nguyên nhân";
+      console.error("Failed to load orders:", err);
+      toast.error(`Lỗi tải đơn hàng: ${msg}`);
+      setLoadError(msg);
+    } finally {
+      setLoading(false);
     }
-    load();
   }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const saleOwners = useMemo(() => {
     const set = new Set<string>();
@@ -265,6 +271,21 @@ export default function OrdersPage() {
         </select>
       </div>
 
+      {/* Load error fallback */}
+      {loadError && !loading && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6 flex flex-col items-center text-center">
+          <AlertTriangle className="w-10 h-10 text-red-500 mb-3" />
+          <h3 className="text-base font-medium text-red-900">Không tải được danh sách đơn hàng</h3>
+          <p className="text-sm text-red-700 mt-1 max-w-md">{loadError}</p>
+          <button
+            onClick={load}
+            className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors"
+          >
+            <RefreshCw className="w-4 h-4" /> Thử lại
+          </button>
+        </div>
+      )}
+
       {/* Record Count */}
       <div className="text-sm text-[#4F5FD9] font-medium">
         {filteredOrders.length} đơn hàng
@@ -375,10 +396,22 @@ export default function OrdersPage() {
                         >
                           <Eye className="w-4 h-4" />
                         </Link>
-                        <button className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors">
+                        <button
+                          type="button"
+                          disabled
+                          title="Chức năng gắn nhãn chưa hỗ trợ"
+                          aria-label="Gắn nhãn (chưa hỗ trợ)"
+                          className="p-1.5 rounded-lg text-gray-300 cursor-not-allowed"
+                        >
                           <Tag className="w-4 h-4" />
                         </button>
-                        <button className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors">
+                        <button
+                          type="button"
+                          disabled
+                          title="Chức năng in đơn chưa hỗ trợ"
+                          aria-label="In đơn (chưa hỗ trợ)"
+                          className="p-1.5 rounded-lg text-gray-300 cursor-not-allowed"
+                        >
                           <Printer className="w-4 h-4" />
                         </button>
                       </div>

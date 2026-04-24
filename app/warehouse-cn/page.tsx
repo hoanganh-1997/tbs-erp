@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { Search, Package, CheckCircle, Clock, Inbox, ShieldAlert, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { cn, formatDate } from "@/lib/utils";
@@ -55,6 +56,7 @@ function EmptyState() {
 }
 
 export default function WarehouseCnPage() {
+  const router = useRouter();
   const [receipts, setReceipts] = useState<WarehouseCnReceipt[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("Tất cả");
@@ -102,8 +104,21 @@ export default function WarehouseCnPage() {
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const handleScan = () => {
-    setSearchApplied(scanQuery.trim());
+    const q = scanQuery.trim();
+    setSearchApplied(q);
     setPage(1);
+    if (!q) return;
+    const lower = q.toLowerCase();
+    const found = receipts.some(
+      (r) =>
+        r.TrackingCN?.toLowerCase() === lower ||
+        r.ReceiptCode?.toLowerCase() === lower ||
+        r.TrackingCN?.toLowerCase().includes(lower),
+    );
+    if (!found) {
+      toast.info(`Không tìm thấy mã "${q}", chuyển sang form Nhận hàng mới`);
+      router.push(`/warehouse-cn/new?tracking=${encodeURIComponent(q)}`);
+    }
   };
 
   const handleReceive = async (receipt: WarehouseCnReceipt) => {

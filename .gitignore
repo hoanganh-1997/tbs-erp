@@ -1,0 +1,31 @@
+node_modules/
+.next/
+out/
+dist/
+
+# env files
+.env
+.env.local
+.env.*.local
+
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
+
+# Logs
+*.log
+next-dev.log
+
+# Probe scripts + artifacts (tester's local scripts with hardcoded dev JWT/APP_TOKEN — do not commit)
+probe-*.mjs
+probe-*.log
+probe-*.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/

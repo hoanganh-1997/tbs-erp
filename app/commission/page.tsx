@@ -11,9 +11,9 @@ import { getPaymentVouchers } from "@/lib/payment-vouchers";
 import type { Order } from "@/lib/orders";
 import type { PaymentVoucher } from "@/lib/payment-vouchers";
 import { Award } from "lucide-react";
+import { COMMISSION_RATE } from "@/lib/constants";
 
 const PAGE_SIZE = 20;
-const COMMISSION_RATE = 0.15;
 
 interface CommissionRow {
   id: string;

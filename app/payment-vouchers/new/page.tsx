@@ -10,7 +10,8 @@ import { getExchangeRates } from "@/lib/exchange-rates";
 import type { Order } from "@/lib/orders";
 import type { PaymentVoucher } from "@/lib/payment-vouchers";
 import type { ExchangeRate } from "@/lib/exchange-rates";
-import { ArrowLeft, AlertTriangle, Search, Check } from "lucide-react";
+import { uploadFile, type AttachmentRef } from "@/lib/inforact-sdk-ext";
+import { ArrowLeft, AlertTriangle, Search, Check, Paperclip, X as XIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 const EXPENSE_TYPES = ["Cọc", "Thanh toán NCC", "Thuế NK", "VAT", "Cước VC", "Phí cảng", "Phí giao hàng", "Phát sinh", "Hoàn tiền", "COD"];
@@ -83,6 +84,8 @@ export default function NewPaymentVoucherPage() {
   const [exchangeRate, setExchangeRate] = useState<string>("");
   const [beneficiary, setBeneficiary] = useState("");
   const [reason, setReason] = useState("");
+  const [attachments, setAttachments] = useState<AttachmentRef[]>([]);
+  const [uploading, setUploading] = useState(false);
 
   // Errors
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -163,9 +166,35 @@ export default function NewPaymentVoucherPage() {
     if (reason.length < 20) {
       errs.reason = "Lý do phải >= 20 ký tự";
     }
+    if (type === "Phiếu chi" && !beneficiary.trim()) {
+      errs.beneficiary = "Phiếu chi bắt buộc nhập người thụ hưởng";
+    }
+    if (type === "Phiếu chi" && attachments.length === 0) {
+      errs.attachments = "Phiếu chi bắt buộc đính kèm chứng từ (hóa đơn/biên nhận)";
+    }
 
     setErrors(errs);
     return Object.keys(errs).length === 0;
+  }
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    if (files.length === 0) return;
+    setUploading(true);
+    try {
+      const uploaded = await Promise.all(files.map((f) => uploadFile(f)));
+      setAttachments((prev) => [...prev, ...uploaded]);
+      toast.success(`Đã tải lên ${uploaded.length} tệp`);
+    } catch (err: any) {
+      toast.error(`Lỗi tải tệp: ${err.message ?? "unknown"}`);
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  }
+
+  function removeAttachment(id: string) {
+    setAttachments((prev) => prev.filter((a) => a.id !== id));
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -191,6 +220,7 @@ export default function NewPaymentVoucherPage() {
         Status: "Nháp",
         IsFlagged: isFlagged,
         FlagReason: isFlagged ? flagWarnings.join("; ") : undefined,
+        Attachments: attachments.length > 0 ? attachments : undefined,
       });
       toast.success("Tạo phiếu thành công");
       router.push("/payment-vouchers");
@@ -326,14 +356,88 @@ export default function NewPaymentVoucherPage() {
           <h3 className="text-sm font-semibold text-[#2D3A8C] uppercase tracking-wider mb-4">Chi tiết</h3>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Người thụ hưởng</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Người thụ hưởng
+                {type === "Phiếu chi" && <span className="text-red-500"> *</span>}
+              </label>
               <input
                 type="text"
                 value={beneficiary}
                 onChange={(e) => setBeneficiary(e.target.value)}
                 placeholder="Tên người thụ hưởng"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#4F5FD9] focus:border-transparent outline-none"
+                className={cn(
+                  "w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#4F5FD9] focus:border-transparent outline-none",
+                  errors.beneficiary ? "border-red-400" : "border-gray-300",
+                )}
               />
+              {errors.beneficiary && (
+                <p className="text-xs text-red-500 mt-1">{errors.beneficiary}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Chứng từ đính kèm
+                {type === "Phiếu chi" && <span className="text-red-500"> *</span>}
+                <span className="text-xs font-normal text-gray-500 ml-2">
+                  (hóa đơn, biên nhận — bắt buộc với phiếu chi)
+                </span>
+              </label>
+              <label
+                className={cn(
+                  "flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed rounded-lg cursor-pointer transition-colors",
+                  errors.attachments
+                    ? "border-red-400 bg-red-50"
+                    : "border-gray-300 hover:border-[#4F5FD9] hover:bg-blue-50",
+                  uploading && "opacity-60 cursor-wait",
+                )}
+              >
+                <Paperclip className="w-4 h-4 text-gray-500" />
+                <span className="text-sm text-gray-600">
+                  {uploading ? "Đang tải lên..." : "Bấm để chọn tệp (PDF, JPG, PNG)"}
+                </span>
+                <input
+                  type="file"
+                  multiple
+                  accept="application/pdf,image/*"
+                  disabled={uploading}
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+              </label>
+              {errors.attachments && (
+                <p className="text-xs text-red-500 mt-1">{errors.attachments}</p>
+              )}
+              {attachments.length > 0 && (
+                <ul className="mt-2 space-y-1">
+                  {attachments.map((a) => (
+                    <li
+                      key={a.id}
+                      className="flex items-center justify-between gap-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm"
+                    >
+                      <a
+                        href={a.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="truncate text-[#4F5FD9] hover:underline"
+                      >
+                        {a.name}
+                      </a>
+                      <span className="text-xs text-gray-400 flex-shrink-0">
+                        {(a.size / 1024).toFixed(1)} KB
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => removeAttachment(a.id)}
+                        className="text-gray-400 hover:text-red-500 flex-shrink-0"
+                        aria-label={`Remove ${a.name}`}
+                      >
+                        <XIcon className="w-4 h-4" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Lý do <span className="text-red-500">*</span></label>

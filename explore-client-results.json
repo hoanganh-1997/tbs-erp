@@ -1,0 +1,152 @@
+[
+  {
+    "id": "NAV-01",
+    "name": "GET / — dashboard loads",
+    "status": "PASS",
+    "notes": "status=200, 3461ms, title=\"\", h1=\"Tổng quan\""
+  },
+  {
+    "id": "NAV-01-CONS",
+    "name": "Console errors on dashboard",
+    "status": "BUG",
+    "notes": "[{\"url\":\"http://localhost:3000/\",\"text\":\"Failed to load resource: the server responded with a status of 404 (Not Found)\"}]"
+  },
+  {
+    "id": "NAV-02",
+    "name": "Sidebar → Orders",
+    "status": "PASS",
+    "notes": "url=http://localhost:3000/orders, h1visible=true"
+  },
+  {
+    "id": "ORD-01",
+    "name": "Orders list loads data",
+    "status": "PASS",
+    "notes": "rows=20, empty=false"
+  },
+  {
+    "id": "ORD-01-CONS",
+    "name": "Console on /orders",
+    "status": "BUG",
+    "notes": "[{\"url\":\"http://localhost:3000/orders\",\"text\":\"Failed to load orders: TypeError: Failed to fetch\\n    at fetchServerAction (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/router-reducer/reducers/server-action-reducer.js:32:23)\"},{\"url\":\"http://localhost:3000/orders\",\"text\":\"Warning: Each child in a list should have a unique \\\"key\\\" prop.%s%s See https://reactjs.org/link/warning-keys for more information.%s \\n\\nCheck the render method of `OrdersPage`.  \\n    at OrdersPage (webpack-internal:///(app-pages-browser)/./app/orders/page.tsx:421:78)\\n    at ClientPageRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/client-page.js:14:11)\\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\\n    at div\\n    at main\\n    at div\\n    at AutoInitProvider (webpack-internal:///(app-pages-browser)/./components/auto-init-provider.tsx:23:11)\\n    at body\\n    at html\\n    at RootLayout (Server)\\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\\n    at DevRootNotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/dev-root-not-found-boundary.js:33:11)\\n    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/ReactDevOverlay.js:87:9)\\n    at HotReload (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:321:11)\\n    at Router (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:207:11)\\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\\n    at AppRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:585:13)\\n    at ServerRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:112:27)\\n    at Root (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:117:11)\"}]"
+  },
+  {
+    "id": "ORD-02",
+    "name": "Open /orders/new",
+    "status": "PASS",
+    "notes": "2158ms, h1visible=true"
+  },
+  {
+    "id": "ORD-03",
+    "name": "Empty submit blocked by validation",
+    "status": "PASS",
+    "notes": "stillNew=true, errMsg=true, toast=false"
+  },
+  {
+    "id": "ORD-04",
+    "name": "Create order with partial data",
+    "status": "INFO",
+    "notes": "filled=5, combos=0, urlAfter=tp://localhost:3000/orders/new, toast=\"\""
+  },
+  {
+    "id": "ORD-05",
+    "name": "Navigate to order detail",
+    "status": "PASS",
+    "notes": "href=/orders/69d8730364318e6d026ed564, 55ms"
+  },
+  {
+    "id": "ORD-06",
+    "name": "Edit button not found",
+    "status": "INFO",
+    "notes": "may be in dropdown/context menu"
+  },
+  {
+    "id": "ORD-EDIT-CONS",
+    "name": "Console on detail/edit",
+    "status": "BUG",
+    "notes": "[{\"url\":\"http://localhost:3000/orders\",\"text\":\"Warning: Each child in a list should have a unique \\\"key\\\" prop.%s%s See https://reactjs.org/link/warning-keys for more information.%s \\n\\nCheck the render method of `OrdersPage`.  \\n    at OrdersPage (webpack-internal:///(app-pages-browser)/./app/orders/page.tsx:421:78)\\n    at ClientPageRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/client-page.js:14:11)\\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\\n    at div\\n    at main\\n    at div\\n    at AutoInitProvider (webpack-internal:///(app-pages-browser)/./components/auto-init-provider.tsx:23:11)\\n    at body\\n    at html\\n    at RootLayout (Server)\\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\\n    at DevRootNotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/dev-root-not-found-boundary.js:33:11)\\n    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/ReactDevOverlay.js:87:9)\\n    at HotReload (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:321:11)\\n    at Router (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:207:11)\\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\\n    at AppRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:585:13)\\n    at ServerRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:112:27)\\n    at Root (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:117:11)\"}]"
+  },
+  {
+    "id": "DEL-01",
+    "name": "Delete button visible on customer list",
+    "status": "INFO",
+    "notes": "not found in list view — may require row action menu"
+  },
+  {
+    "id": "EMP-invoices",
+    "name": "/invoices — renders",
+    "status": "INFO",
+    "notes": "2956ms, emptyText=true, rows=0, consoleErrs=0"
+  },
+  {
+    "id": "EMP-general-ledger",
+    "name": "/general-ledger — renders",
+    "status": "INFO",
+    "notes": "1308ms, emptyText=true, rows=0, consoleErrs=0"
+  },
+  {
+    "id": "EMP-payroll",
+    "name": "/payroll — renders",
+    "status": "INFO",
+    "notes": "1164ms, emptyText=true, rows=0, consoleErrs=0"
+  },
+  {
+    "id": "EMP-budget",
+    "name": "/budget — renders",
+    "status": "INFO",
+    "notes": "1719ms, emptyText=true, rows=0, consoleErrs=0"
+  },
+  {
+    "id": "EMP-labels",
+    "name": "/labels — renders",
+    "status": "INFO",
+    "notes": "1257ms, emptyText=true, rows=0, consoleErrs=0"
+  },
+  {
+    "id": "TITLE-",
+    "name": "Title of /",
+    "status": "BUG",
+    "notes": "title=\"\""
+  },
+  {
+    "id": "TITLE-orders",
+    "name": "Title of /orders",
+    "status": "BUG",
+    "notes": "title=\"\""
+  },
+  {
+    "id": "TITLE-customers",
+    "name": "Title of /customers",
+    "status": "BUG",
+    "notes": "title=\"\""
+  },
+  {
+    "id": "TITLE-suppliers",
+    "name": "Title of /suppliers",
+    "status": "BUG",
+    "notes": "title=\"\""
+  },
+  {
+    "id": "STUB-debt-offset",
+    "name": "/debt-offset shows stub",
+    "status": "PASS",
+    "notes": ""
+  },
+  {
+    "id": "STUB-attendance",
+    "name": "/attendance shows stub",
+    "status": "PASS",
+    "notes": ""
+  },
+  {
+    "id": "STUB-leave",
+    "name": "/leave shows stub",
+    "status": "PASS",
+    "notes": ""
+  },
+  {
+    "id": "TOAST-01",
+    "name": "Toast appears on validation error",
+    "status": "INFO",
+    "notes": "n=0, texts=[]"
+  }
+]

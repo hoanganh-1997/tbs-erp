@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
-import { getQuotations, updateQuotation, deleteQuotation } from "@/lib/quotations";
+import { listQuotations, updateQuotation, deleteQuotation } from "@/lib/quotations";
 import type { Quotation } from "@/lib/quotations";
 import { formatCurrency } from "@/lib/utils";
 import { cn } from "@/lib/utils";
@@ -69,7 +69,7 @@ export default function QuotationsPage() {
     async function fetchData() {
       setLoading(true);
       try {
-        const res = await getQuotations({ take: 200, sortField: "createdAt", sortDirection: "desc" });
+        const res = await listQuotations({ take: 200, sort: [{ field: "createdAt", direction: "desc" }] });
         setQuotations(res.data || []);
       } catch {
         setQuotations([]);
